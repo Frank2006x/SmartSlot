@@ -8,7 +8,7 @@ const page = () => {
       <div
         className="w-2/5 flex flex-col items-center justify-center gap-12 text-white
                   bg-no-repeat bg-center bg-cover"
-        style={{ backgroundImage: "url('/lp_imgs/login.png')" }}
+         style={{ backgroundImage: "url('/lp_imgs/login.png')"}}
       >
         <h1 className="text-5xl font-bold">Welcome Back!</h1>
         <p className="text-xl text-center leading-relaxed">

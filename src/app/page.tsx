@@ -1,33 +1,20 @@
-import React from "react";
+import React from "react"
+import Image from "next/image"
+import Link from "next/link"
 
-import Image from "next/image";
-
-
-const main = () => {
+const Main = () => {
   return (
-    <>
-    
-    <div className=" bg-[#EEF3F7] text-[#2E2E2E] min-h-screen flex flex-col">
-      <div className="w-full bg-[#F5F7F9] flex items-center justify-center gap-8 px-20 py-4 ">
-        <p>
-          If you have any questions or want to know more about our product,
-          schedule a free call with us now!
-        </p>
-        <button className="bg-[#4FC08D] text-white hover:bg-[#3DAF7A] px-3 rounded-full">
-          Book a Discovery Call
-        </button>
-      </div>
+    <div className="bg-[#EEF3F7] text-[#2E2E2E] min-h-screen flex flex-col">
 
       <div className="w-full bg-white flex items-center justify-between px-28 py-1 h-23">
         <div className="flex items-center gap-2">
           <Image
-              src="/lp_imgs/logo.png"
-              alt="SmartSlot Logo"
-              width={88}
-              height={88}
-              className="object-cover"
+            src="/lp_imgs/logo.png"
+            alt="SmartSlot Logo"
+            width={88}
+            height={88}
+            className="object-cover"
           />
-
           <span className="text-2xl font-bold font-serif text-[#2E2E2E]">
             SmartSlot
           </span>
@@ -35,54 +22,53 @@ const main = () => {
 
         <div className="flex items-center gap-6">
           <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Home</button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
-            Features
-          </button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
-            Pricing
-          </button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
-            Contact
-          </button>
-          <button className="bg-[#4FC08D] text-white hover:bg-[#3DAF7A] px-4 py-1 rounded-full">
+          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Features</button>
+          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Pricing</button>
+          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Contact</button>
+
+          <Link
+            href="/login"
+            className="bg-[#4FC08D] text-white hover:bg-[#3DAF7A] px-4 py-1 rounded-full"
+          >
             Login
-          </button>
+          </Link>
         </div>
       </div>
 
       <div className="bg-[#EEF3F7] flex flex-col px-20 py-10 gap-10">
         <div className="flex">
           <div className="flex flex-col justify-center gap-4 pr-16 w-1/2">
-            <h3 className="text-4xl font-bold mt-10 text-[#2E2E2E] text-left">
+            <h3 className="text-4xl font-bold mt-10 text-left">
               Discover the easiest way to schedule appointments with the #1
               online booking system
             </h3>
-            <p className="mt-4 text-lg text-[#2E2E2E] text-left">
+
+            <p className="mt-4 text-lg text-left">
               Save time spent on coordinating appointments over phone and email
               with an all-in-one appointment booking software. Accept online
               bookings 24x7, automate payments, business management, marketing,
               and more!
             </p>
 
-            <button className="bg-[#4FC08D] text-white hover:bg-[#3DAF7A] px-12 py-4 rounded-full mt-4 text-xl ">
+            <Link
+              href="/login"
+              className="bg-[#4FC08D] text-white hover:bg-[#3DAF7A] px-12 py-4 rounded-full mt-4 text-xl w-fit"
+            >
               Get Started Free!
-            </button>
+            </Link>
           </div>
 
           <div className="flex items-center justify-end w-1/2">
             <div className="relative w-full max-w-130 h-100">
               <Image
                 src="/lp_imgs/sideimg1.png"
-                alt="side1"
+                alt="Hero"
                 fill
                 className="object-contain"
               />
             </div>
-
-            
           </div>
         </div>
-
         <br></br>
         <br></br>
         <br></br>
@@ -506,13 +492,15 @@ const main = () => {
         <br></br>
       </div>
 
+      
+
+
+
       <footer className="bg-[#EEF3F7] w-full mt-24">
-        <div className="max-w-7xl mx-auto px-28 py-1">
+        <div className="max-w-7xl mx-auto px-28 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-16 text-[#414A4D]">
             <div>
-              <h3 className="text-sm font-semibold tracking-widest mb-4">
-                PRODUCT
-              </h3>
+              <h3 className="text-sm font-semibold mb-4">PRODUCT</h3>
               <ul className="space-y-2 text-sm">
                 <li>Home</li>
                 <li>Customers</li>
@@ -524,9 +512,7 @@ const main = () => {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold tracking-widest mb-4">
-                FEATURES
-              </h3>
+              <h3 className="text-sm font-semibold mb-4">FEATURES</h3>
               <ul className="space-y-2 text-sm">
                 <li>Schedule online</li>
                 <li>Increase productivity</li>
@@ -536,87 +522,32 @@ const main = () => {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold tracking-widest mb-4">
-                SUPPORT
-              </h3>
+              <h3 className="text-sm font-semibold mb-4">SUPPORT</h3>
               <ul className="space-y-2 text-sm">
                 <li>Help</li>
                 <li>Screen sharing</li>
                 <li>Affiliate Program</li>
               </ul>
-
-              <h3 className="text-sm font-semibold tracking-widest mt-6 mb-3">
-                CONNECT WITH US
-              </h3>
-              <div className="flex gap-4 text-xl">
-                <span>
-                  <Image
-                    src="/lp_contact_icons/facebook.png"
-                    alt="Facebook"
-                    width={24}
-                    height={24}
-                  />
-
-                </span>
-                <span>
-                  <Image
-                    src="/lp_contact_icons/twitter.png"
-                    alt="Twitter"
-                    width={24}
-                    height={24}
-                  />
-
-                </span>
-                <span>
-                  <Image
-                    src="/lp_contact_icons/linkedin.png"
-                    alt="LinkedIn"
-                    width={24}
-                    height={24}
-                  />
-
-                </span>
-                <span>
-                    <Image
-                      src="/lp_contact_icons/instagram.png"
-                      alt="Facebook"
-                      width={24}
-                      height={24}
-                    />
-
-                </span>
-              </div>
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold tracking-widest mb-4">
-                CONTACT US
-              </h3>
-              <p className="text-sm font-semibold mb-2">
-                SmartSlot Software Inc.
-              </p>
-              <p className="text-sm">
+              <h3 className="text-sm font-semibold mb-4">CONTACT US</h3>
+              <p className="text-sm font-semibold">SmartSlot Software Inc.</p>
+              <p className="text-sm mt-2">
                 VIT Chennai
                 <br />
                 Vandalur
                 <br />
                 Chennai
               </p>
-
               <p className="text-sm mt-3">contact@smartslot.com</p>
-
-              <ul className="space-y-2 text-sm mt-4">
-                <li>Privacy policy</li>
-                <li>Terms of use</li>
-                <li>GDPR</li>
-              </ul>
             </div>
           </div>
         </div>
       </footer>
-    </div>
-    </>
-  );
-};
 
-export default main;
+    </div>
+  )
+}
+
+export default Main
