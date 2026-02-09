@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 
 const Page = () => {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div
@@ -11,7 +11,6 @@ const Page = () => {
       style={{ backgroundImage: "url('/lp_imgs/login.png')" }}
     >
       <div className="w-[92vw] h-[80vh] bg-white rounded-3xl overflow-hidden flex">
-
         <div
           className="
             w-1/2 h-full
@@ -30,7 +29,7 @@ const Page = () => {
           </span>
 
           <button
-            onClick={() => router.push("/admin")}
+            onClick={() => router.push("/create")}
             className="
               px-10 py-4 rounded-full
               bg-emerald-500 text-white text-lg
@@ -60,7 +59,7 @@ const Page = () => {
           </span>
 
           <button
-            onClick={() => router.push("/user")}
+            onClick={() => router.push("/book")}
             className="
               px-10 py-4 rounded-full
               bg-emerald-500 text-white text-lg
@@ -71,10 +70,9 @@ const Page = () => {
             User Page →
           </button>
         </div>
-
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;
