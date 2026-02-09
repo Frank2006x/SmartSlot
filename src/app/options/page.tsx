@@ -2,9 +2,17 @@
 
 import { useRouter } from "next/navigation";
 import { Calendar, Clock, Users, Plus } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { useEffect } from "react";
 
 const Page = () => {
   const router = useRouter();
+  const { data: session } = authClient.useSession();
+  useEffect(() => {
+    if (!session?.user) {
+      router.push("/login");
+    }
+  }, [session, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 flex items-center justify-center p-6">

@@ -14,16 +14,16 @@ const Main = () => {
         </div>
 
         <div className="flex items-center gap-6">
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Home</button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
+          <a className="text-[#2E2E2E] hover:text-[#4FC08D]" href="#home">
+            Home
+          </a>
+          <a className="text-[#2E2E2E] hover:text-[#4FC08D]" href="#features">
             Features
-          </button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
-            Pricing
-          </button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
+          </a>
+
+          <a className="text-[#2E2E2E] hover:text-[#4FC08D]" href="#contact">
             Contact
-          </button>
+          </a>
 
           <Link
             href="/login"
@@ -34,7 +34,7 @@ const Main = () => {
         </div>
       </div>
 
-      <div className="bg-[#EEF3F7] flex flex-col px-20 py-10 gap-10">
+      <div id="home" className="bg-[#EEF3F7] flex flex-col px-20 py-10 gap-10">
         <div className="flex">
           <div className="flex flex-col justify-center gap-4 pr-16 w-1/2">
             <h3 className="text-4xl font-bold mt-10 text-left">
@@ -74,7 +74,10 @@ const Main = () => {
         <br></br>
       </div>
 
-      <div className="flex flex-col item-start gap-8 bg-[#F5F7F9] w-full p-15">
+      <div
+        id="features"
+        className="flex flex-col item-start gap-8 bg-[#F5F7F9] w-full p-15"
+      >
         <h1 className="text-3xl font-bold text-[#2E2E2E] text-center self-center">
           Online appointment booking made simple with a 3-step <br />
           setup process
@@ -440,7 +443,7 @@ const Main = () => {
       <br></br>
       <br></br>
 
-      <div className="bg-white flex flex-col p-15">
+      <div id="pricing" className="bg-white flex flex-col p-15">
         <h1 className="text-3xl font-bold text-[#2E2E2E] text-center self-center">
           Flexible booking settings allow you to have complete<br></br> control
           over your schedule
@@ -511,7 +514,7 @@ const Main = () => {
         <br></br>
       </div>
 
-      <footer className="bg-[#EEF3F7] w-full mt-24">
+      <footer id="contact" className="bg-[#EEF3F7] w-full mt-24">
         <div className="max-w-7xl mx-auto px-28 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-16 text-[#414A4D]">
             <div>

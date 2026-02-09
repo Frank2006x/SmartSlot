@@ -49,44 +49,44 @@ function UserDashboard() {
           </div>
         </div>
       </div>
-      
+
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-[420px] bg-white rounded-3xl p-10 shadow-lg flex flex-col gap-6">
-        <div className="text-center">
-          <div className="flex justify-between items-center mb-4">
-            <div></div>
-            <h1 className="text-3xl font-bold text-emerald-400">SmartSlot</h1>
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
-              Sign Out
-            </button>
+          <div className="text-center">
+            <div className="flex justify-between items-center mb-4">
+              <div></div>
+              <h1 className="text-3xl font-bold text-emerald-400">SmartSlot</h1>
+              <button
+                onClick={handleSignOut}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Sign Out
+              </button>
+            </div>
+            <p className="text-gray-500 mb-2">
+              Welcome, {session?.user?.name || "User"}!
+            </p>
+            <p className="text-gray-500">Enter your 6-digit appointment code</p>
           </div>
-          <p className="text-gray-500 mb-2">
-            Welcome, {session?.user?.name || "User"}!
-          </p>
-          <p className="text-gray-500">Enter your 6-digit appointment code</p>
-        </div>
 
-        <input
-          type="text"
-          maxLength={6}
-          value={code}
-          onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
-          placeholder="XXXXXX"
-          className="
+          <input
+            type="text"
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="XXXXXX"
+            className="
             text-center text-2xl tracking-widest
             border border-gray-300 rounded-xl
             py-4 outline-none
             focus:border-emerald-400
           "
-        />
+          />
 
-        <button
-          onClick={handleJoin}
-          disabled={code.length !== 6}
-          className={`
+          <button
+            onClick={handleJoin}
+            disabled={code.length !== 6}
+            className={`
             py-4 rounded-xl text-lg font-semibold
             transition
             ${
@@ -95,13 +95,13 @@ function UserDashboard() {
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }
           `}
-        >
-          Join Meet
-        </button>
+          >
+            Join Meet
+          </button>
 
-        <p className="text-xs text-center text-gray-400">
-          Ask your service provider for the 6-digit code
-        </p>
+          <p className="text-xs text-center text-gray-400">
+            Ask your service provider for the 6-digit code
+          </p>
         </div>
       </div>
     </div>

@@ -44,23 +44,6 @@ const LoginPage = () => {
           <br />
           login with your personal info
         </p>
-        <button
-          className="
-              bg-transparent
-              border border-white
-              text-white
-              px-20 py-3
-              rounded-full
-              transition-all duration-300
-              hover:bg-emerald-700/40
-              hover:border-emerald-200
-              hover:text-white
-            "
-          onClick={handleGoogleSignIn}
-          disabled={isLoading}
-        >
-          {isLoading ? "Signing In..." : "Sign In"}
-        </button>
       </div>
 
       <div className="w-3/5 bg-white flex flex-col items-center justify-center px-20">
