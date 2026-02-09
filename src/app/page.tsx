@@ -1,30 +1,29 @@
-import React from "react"
-import Image from "next/image"
-import Link from "next/link"
+import React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { SwatchBook } from "lucide-react";
 
 const Main = () => {
   return (
     <div className="bg-[#EEF3F7] text-[#2E2E2E] min-h-screen flex flex-col">
-
       <div className="w-full bg-white flex items-center justify-between px-28 py-1 h-23">
         <div className="flex items-center gap-2">
-          <Image
-            src="/lp_imgs/logo.png"
-            alt="SmartSlot Logo"
-            width={88}
-            height={88}
-            className="object-cover"
-          />
-          <span className="text-2xl font-bold font-serif text-[#2E2E2E]">
-            SmartSlot
-          </span>
+          <SwatchBook width={60} height={60} color="#4FC08D" />
+
+          <span className="text-2xl font-bold  text-[#2E2E2E]">SmartSlot</span>
         </div>
 
         <div className="flex items-center gap-6">
           <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Home</button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Features</button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Pricing</button>
-          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">Contact</button>
+          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
+            Features
+          </button>
+          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
+            Pricing
+          </button>
+          <button className="text-[#2E2E2E] hover:text-[#4FC08D]">
+            Contact
+          </button>
 
           <Link
             href="/login"
@@ -452,38 +451,58 @@ const Main = () => {
 
         <div className="flex justify-center gap-16 flex-wrap mt-16">
           <div className="w-64 flex flex-col items-center text-center gap-3">
-            <Image src="/lp_setting_icons/setting1.png" alt="Hour Settings" width={64} height={64} />
+            <Image
+              src="/lp_setting_icons/setting1.png"
+              alt="Hour Settings"
+              width={64}
+              height={64}
+            />
             <p className="text-lg font-medium">Business Hour Settings</p>
             <p className="text-sm text-[#707070]">
-              You can control business hours at both the staff and service levels giving
-              you the flexibility you need
+              You can control business hours at both the staff and service
+              levels giving you the flexibility you need
             </p>
           </div>
 
           <div className="w-64 flex flex-col items-center text-center gap-3">
-            <Image src="/lp_setting_icons/setting2.png" alt="Back to Back Bookings" width={64} height={64} />
+            <Image
+              src="/lp_setting_icons/setting2.png"
+              alt="Back to Back Bookings"
+              width={64}
+              height={64}
+            />
             <p className="text-lg font-medium">Back to Back Bookings</p>
             <p className="text-sm text-[#707070]">
-              Customers selecting multiple services will only be shown times where all
-              chosen services can be availed together
+              Customers selecting multiple services will only be shown times
+              where all chosen services can be availed together
             </p>
           </div>
 
           <div className="w-64 flex flex-col items-center text-center gap-3">
-            <Image src="/lp_setting_icons/setting3.png" alt="Booking Restrictions" width={64} height={64} />
+            <Image
+              src="/lp_setting_icons/setting3.png"
+              alt="Booking Restrictions"
+              width={64}
+              height={64}
+            />
             <p className="text-lg font-medium">Booking Restrictions</p>
             <p className="text-sm text-[#707070]">
-              Choose how much in advance members can book or cancel, limit bookings, and
-              more
+              Choose how much in advance members can book or cancel, limit
+              bookings, and more
             </p>
           </div>
 
           <div className="w-64 flex flex-col items-center text-center gap-3">
-            <Image src="/lp_setting_icons/setting4.png" alt="Group Scheduling" width={64} height={64} />
+            <Image
+              src="/lp_setting_icons/setting4.png"
+              alt="Group Scheduling"
+              width={64}
+              height={64}
+            />
             <p className="text-lg font-medium">Group Scheduling</p>
             <p className="text-sm text-[#707070]">
-              Allow customers to schedule and pay for appointments for a group in a
-              single transaction
+              Allow customers to schedule and pay for appointments for a group
+              in a single transaction
             </p>
           </div>
         </div>
@@ -491,10 +510,6 @@ const Main = () => {
         <br></br>
         <br></br>
       </div>
-
-      
-
-
 
       <footer className="bg-[#EEF3F7] w-full mt-24">
         <div className="max-w-7xl mx-auto px-28 py-12">
@@ -545,9 +560,8 @@ const Main = () => {
           </div>
         </div>
       </footer>
-
     </div>
-  )
-}
+  );
+};
 
-export default Main
+export default Main;
