@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Calendar, Clock, Users, Plus } from "lucide-react";
+import axios, { AxiosError } from "axios";
 import { authClient } from "@/lib/auth-client";
 import { FormEvent, useEffect, useState } from "react";
 
@@ -20,18 +21,12 @@ const Page = () => {
 
     const checkPhone = async () => {
       try {
-        const res = await fetch("/api/phone", {
-          method: "GET",
-          credentials: "include",
-        });
+        const res = await axios.get<{
+          hasPhone: boolean;
+          phoneNumber: string | null;
+        }>("/api/phone", { withCredentials: true });
 
-        if (res.status === 401) {
-          router.push("/login");
-          return;
-        }
-
-        const data: { hasPhone: boolean; phoneNumber: string | null } =
-          await res.json();
+        const data = res.data;
 
         if (!data.hasPhone) {
           setShowPhoneModal(true);
@@ -40,7 +35,12 @@ const Page = () => {
           setShowPhoneModal(false);
         }
       } catch (error) {
-        console.error("Phone check failed", error);
+        const err = error as AxiosError<{ error?: string }>;
+        if (err.response?.status === 401) {
+          router.push("/login");
+          return;
+        }
+        console.error("Phone check failed", err);
       }
     };
 
@@ -67,27 +67,23 @@ const Page = () => {
     setPhoneError(null);
 
     try {
-      const res = await fetch("/api/phone", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ phoneNumber: trimmedPhone }),
-      });
-
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        setPhoneError(body.error || "Unable to save phone number");
-        return;
-      }
+      await axios.post(
+        "/api/phone",
+        { phoneNumber: trimmedPhone },
+        { withCredentials: true },
+      );
 
       setShowPhoneModal(false);
     } catch (error) {
-      console.error("Failed to save phone number", error);
-      setPhoneError("Something went wrong. Please try again.");
+      const err = error as AxiosError<{ error?: string }>;
+      if (err.response?.status === 401) {
+        router.push("/login");
+        return;
+      }
+      const message =
+        err.response?.data?.error || "Something went wrong. Please try again.";
+      console.error("Failed to save phone number", err);
+      setPhoneError(message);
     } finally {
       setSavingPhone(false);
     }
