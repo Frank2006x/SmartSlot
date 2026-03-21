@@ -1,180 +1,289 @@
 "use client";
 
-import { useState } from "react";
+import type { ChangeEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+
+type Slot = {
+  start: string;
+  end: string;
+  disabled: boolean;
+};
+
+const defaultTimezone =
+  typeof Intl !== "undefined"
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+    : "UTC";
+
+const minutesToTime = (minutes: number) => {
+  const safeMinutes = ((minutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(safeMinutes / 60)
+    .toString()
+    .padStart(2, "0");
+  const mins = (safeMinutes % 60).toString().padStart(2, "0");
+  return `${hours}:${mins}`;
+};
+
+const timeToMinutes = (value: string) => {
+  const [h, m] = value.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+};
 
 export default function CreateSlotPage() {
   const router = useRouter();
 
   const [form, setForm] = useState({
-    id: Date.now().toString(),
-    serviceTitle: "",
+    id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+    title: "",
     description: "",
-    price: "",
-    startDate: "",
-    endDate: "",
-    startTime: "",
-    endTime: "",
-    duration: "30",
-    maxBookings: "1",
-    active: true,
-    image: "",
-    status: "Upcoming",
+    coverColor: "#10b981",
+    startsOn: "",
+    endsOn: "",
+    dayStartTime: "",
+    durationMinutes: 30,
+    slotGapMinutes: 0,
+    slotCount: 1,
+    timezone: defaultTimezone,
+    isActive: true,
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [computedEndTime, setComputedEndTime] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const rawSlots = useMemo(() => {
+    const startMinutes = timeToMinutes(form.dayStartTime);
+    if (
+      startMinutes === null ||
+      form.durationMinutes <= 0 ||
+      form.slotCount <= 0
+    )
+      return { slots: [] as Slot[], end: "" };
+
+    const nextSlots: Slot[] = [];
+    let cursor = startMinutes;
+    let lastEnd = startMinutes;
+
+    for (let i = 0; i < form.slotCount; i += 1) {
+      const slotStart = cursor;
+      const slotEnd = slotStart + form.durationMinutes;
+      nextSlots.push({
+        start: minutesToTime(slotStart),
+        end: minutesToTime(slotEnd),
+        disabled: false,
+      });
+      cursor = slotEnd + form.slotGapMinutes;
+      lastEnd = slotEnd;
+    }
+
+    return { slots: nextSlots, end: minutesToTime(lastEnd) };
+  }, [
+    form.dayStartTime,
+    form.durationMinutes,
+    form.slotCount,
+    form.slotGapMinutes,
+  ]);
+
+  useEffect(() => {
+    setComputedEndTime(rawSlots.end);
+    setSlots((prev) =>
+      rawSlots.slots.map((slot) => {
+        const previous = prev.find(
+          (p) => p.start === slot.start && p.end === slot.end,
+        );
+        return previous ? { ...slot, disabled: previous.disabled } : slot;
+      }),
+    );
+  }, [rawSlots]);
+
+  const handleTextChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    const { name, value, type } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm((prev) => ({ ...prev, image: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
+  const handleNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const parsed = parseInt(value || "0", 10);
+    setForm((prev) => ({ ...prev, [name]: Number.isNaN(parsed) ? 0 : parsed }));
   };
 
-  const handleSubmit = () => {
-    if (!form.serviceTitle || !form.startDate || !form.startTime) {
+  const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setForm((prev) => ({ ...prev, [name]: checked }));
+  };
+
+  const toggleSlot = (target: Slot) => {
+    setSlots((prev) =>
+      prev.map((slot) =>
+        slot.start === target.start && slot.end === target.end
+          ? { ...slot, disabled: !slot.disabled }
+          : slot,
+      ),
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (
+      !form.title ||
+      !form.startsOn ||
+      !form.dayStartTime ||
+      !computedEndTime
+    ) {
       alert("Please fill required fields");
       return;
     }
 
-    const stored = JSON.parse(localStorage.getItem("appointments") || "[]");
-    stored.push({
-      id: form.id,
-      patientName: form.serviceTitle,
-      treatment: form.description,
-      date: form.startDate,
-      startTime: form.startTime,
-      endTime: form.endTime,
-      status: form.active ? "Upcoming" : "Hidden",
-    });
+    setSubmitting(true);
+    setError(null);
 
-    localStorage.setItem("appointments", JSON.stringify(stored));
-    router.push("/create");
+    try {
+      const response = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title,
+          description: form.description,
+          coverColor: form.coverColor,
+          durationMinutes: form.durationMinutes,
+          slotGapMinutes: form.slotGapMinutes,
+          slotCount: form.slotCount,
+          startsOn: form.startsOn,
+          endsOn: form.endsOn || form.startsOn,
+          dayStartTime: form.dayStartTime,
+          timezone: form.timezone,
+          isActive: form.isActive,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to save appointment");
+      }
+
+      const data = await response.json();
+      const slug = data?.form?.slug;
+      router.push(slug ? `/create?created=${slug}` : "/create");
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-emerald-200 flex items-center justify-center px-6">
-      <div className="bg-white w-full max-w-5xl rounded-3xl px-5">
-        <h1 className="text-3xl font-bold mb-8">Create Appointment Slot</h1>
+      <div className="bg-white w-full max-w-6xl rounded-3xl px-5 py-8">
+        <h1 className="text-3xl font-bold mb-6">Create Appointment Form</h1>
 
-        <div className="grid grid-cols-2 gap-6">
-          {/* Service Title */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-semibold mb-2">
-              Service Title
-            </label>
+            <label className="block text-sm font-semibold mb-2">Title</label>
             <input
-              name="serviceTitle"
-              value={form.serviceTitle}
-              onChange={handleChange}
-              placeholder="Eg. Dental Checkup"
+              name="title"
+              value={form.title}
+              onChange={handleTextChange}
+              placeholder="e.g. Consultation"
               className="w-full border rounded-xl px-4 py-3 outline-none"
             />
           </div>
 
-          {/* Price */}
           <div>
-            <label className="block text-sm font-semibold mb-2">
-              Price (optional)
-            </label>
-            <input
-              name="price"
-              value={form.price}
-              onChange={handleChange}
-              placeholder="₹500"
-              className="w-full border rounded-xl px-4 py-3 outline-none"
-            />
-          </div>
-
-          {/* Description */}
-          <div className="col-span-2">
             <label className="block text-sm font-semibold mb-2">
               Description
             </label>
             <textarea
               name="description"
               value={form.description}
-              onChange={handleChange}
+              onChange={handleTextChange}
               placeholder="Describe the service..."
               className="w-full border rounded-xl px-4 py-3 h-24 resize-none outline-none"
             />
           </div>
 
-          {/* Image */}
-          <div className="col-span-2">
+          <div>
             <label className="block text-sm font-semibold mb-2">
-              Service Image
+              Cover Color
             </label>
-
-            <label className="inline-block bg-emerald-400 text-white px-6 py-3 rounded-full cursor-pointer font-semibold">
-              Upload Image
+            <div className="flex items-center gap-3">
               <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleImage}
+                type="color"
+                name="coverColor"
+                value={form.coverColor}
+                onChange={handleTextChange}
+                className="h-12 w-12 rounded-full border"
               />
-            </label>
+              <input
+                name="coverColor"
+                value={form.coverColor}
+                onChange={handleTextChange}
+                className="w-full border rounded-xl px-4 py-3 outline-none"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2">
-              Start Date
-            </label>
+            <label className="block text-sm font-semibold mb-2">Timezone</label>
             <input
-              type="date"
-              name="startDate"
-              value={form.startDate}
-              onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">End Date</label>
-            <input
-              type="date"
-              name="endDate"
-              value={form.endDate}
-              onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-3"
+              name="timezone"
+              value={form.timezone}
+              onChange={handleTextChange}
+              className="w-full border rounded-xl px-4 py-3 outline-none"
+              readOnly
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold mb-2">
-              Start Time
+              Starts On
             </label>
             <input
-              type="time"
-              name="startTime"
-              value={form.startTime}
-              onChange={handleChange}
+              type="date"
+              name="startsOn"
+              value={form.startsOn}
+              onChange={handleTextChange}
               className="w-full border rounded-xl px-4 py-3"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2">End Time</label>
+            <label className="block text-sm font-semibold mb-2">Ends On</label>
+            <input
+              type="date"
+              name="endsOn"
+              value={form.endsOn}
+              onChange={handleTextChange}
+              className="w-full border rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Day Start Time
+            </label>
             <input
               type="time"
-              name="endTime"
-              value={form.endTime}
-              onChange={handleChange}
+              name="dayStartTime"
+              value={form.dayStartTime}
+              onChange={handleTextChange}
               className="w-full border rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Computed Day End Time
+            </label>
+            <input
+              type="time"
+              name="dayEndTime"
+              value={computedEndTime}
+              readOnly
+              className="w-full border rounded-xl px-4 py-3 bg-gray-100"
             />
           </div>
 
@@ -183,31 +292,93 @@ export default function CreateSlotPage() {
               Slot Duration (minutes)
             </label>
             <input
-              name="duration"
-              value={form.duration}
-              onChange={handleChange}
+              type="number"
+              min={1}
+              name="durationMinutes"
+              value={form.durationMinutes}
+              onChange={handleNumberChange}
               className="w-full border rounded-xl px-4 py-3"
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold mb-2">
-              Max Bookings
+              Gap Between Slots (minutes)
             </label>
             <input
-              name="maxBookings"
-              value={form.maxBookings}
-              onChange={handleChange}
+              type="number"
+              min={0}
+              name="slotGapMinutes"
+              value={form.slotGapMinutes}
+              onChange={handleNumberChange}
               className="w-full border rounded-xl px-4 py-3"
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2">
+              Number of Slots
+            </label>
+            <input
+              type="number"
+              min={1}
+              name="slotCount"
+              value={form.slotCount}
+              onChange={handleNumberChange}
+              className="w-full border rounded-xl px-4 py-3"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 mt-2">
+            <input
+              id="isActive"
+              type="checkbox"
+              name="isActive"
+              checked={form.isActive}
+              onChange={handleCheckboxChange}
+              className="h-5 w-5"
+            />
+            <label htmlFor="isActive" className="text-sm font-semibold">
+              Form is active
+            </label>
+          </div>
         </div>
+
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-3">Available Slots</h2>
+          {slots.length === 0 ? (
+            <p className="text-sm text-gray-600">
+              Enter start time and slot details to see generated slots.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {slots.map((slot) => (
+                <button
+                  key={`${slot.start}-${slot.end}`}
+                  type="button"
+                  onClick={() => toggleSlot(slot)}
+                  className={`flex justify-between items-center border rounded-xl px-4 py-3 text-left transition ${slot.disabled ? "bg-gray-100 border-gray-300 text-gray-500" : "bg-emerald-50 border-emerald-300"}`}
+                >
+                  <span>
+                    {slot.start} - {slot.end}
+                  </span>
+                  <span className="text-xs font-semibold uppercase">
+                    {slot.disabled ? "Disabled" : "Active"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {error ? <p className="text-red-600 text-sm mt-4">{error}</p> : null}
 
         <button
           onClick={handleSubmit}
-          className="w-full bg-emerald-400 hover:bg-emerald-500 text-white py-4 rounded-full font-semibold text-lg mt-9"
+          disabled={submitting}
+          className="w-full bg-emerald-400 hover:bg-emerald-500 disabled:bg-emerald-300 text-white py-4 rounded-full font-semibold text-lg mt-9"
         >
-          Create Slot
+          {submitting ? "Saving..." : "Save Form"}
         </button>
       </div>
     </div>
