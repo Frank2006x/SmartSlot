@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -73,9 +80,36 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const userRelations = relations(user, ({ many }) => ({
+export const phoneNumber = pgTable(
+  "phone_number",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    phoneNumber: text("phone_number").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [uniqueIndex("phone_number_unique_idx").on(table.phoneNumber)],
+);
+
+export const userRelations = relations(user, ({ one, many }) => ({
+  phoneNumber: one(phoneNumber, {
+    fields: [user.id],
+    references: [phoneNumber.userId],
+  }),
   sessions: many(session),
   accounts: many(account),
+}));
+
+export const phoneNumberRelations = relations(phoneNumber, ({ one }) => ({
+  user: one(user, {
+    fields: [phoneNumber.userId],
+    references: [user.id],
+  }),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({

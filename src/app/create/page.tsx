@@ -56,7 +56,7 @@ function AdminDashboard() {
           </div>
 
           <button
-            onClick={() => router.push("/admin/form")}
+            onClick={() => router.push("/create/form")}
             className="bg-emerald-400 hover:bg-emerald-500 text-white font-semibold rounded-full px-4 py-2 w-full mb-8"
           >
             Create
@@ -107,7 +107,7 @@ function AdminDashboard() {
             </div>
 
             <button
-              onClick={() => router.push("/admin/form")}
+              onClick={() => router.push("/create/form")}
               className="bg-emerald-400 text-white px-4 py-2 rounded-lg hover:bg-emerald-500"
             >
               + Add Appointment

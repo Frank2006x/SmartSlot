@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function CreateSlotPage() {
-  const router = useRouter()
+  const router = useRouter();
 
   const [form, setForm] = useState({
     id: Date.now().toString(),
@@ -20,36 +20,37 @@ export default function CreateSlotPage() {
     active: true,
     image: "",
     status: "Upcoming",
-  })
+  });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    const { name, value, type } = e.target
-    setForm(prev => ({
+    const { name, value, type } = e.target;
+    setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    }))
-  }
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = () => {
-      setForm(prev => ({ ...prev, image: reader.result as string }))
-    }
-    reader.readAsDataURL(file)
-  }
+      setForm((prev) => ({ ...prev, image: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = () => {
     if (!form.serviceTitle || !form.startDate || !form.startTime) {
-      alert("Please fill required fields")
-      return
+      alert("Please fill required fields");
+      return;
     }
 
-    const stored = JSON.parse(localStorage.getItem("appointments") || "[]")
+    const stored = JSON.parse(localStorage.getItem("appointments") || "[]");
     stored.push({
       id: form.id,
       patientName: form.serviceTitle,
@@ -58,22 +59,18 @@ export default function CreateSlotPage() {
       startTime: form.startTime,
       endTime: form.endTime,
       status: form.active ? "Upcoming" : "Hidden",
-    })
+    });
 
-    localStorage.setItem("appointments", JSON.stringify(stored))
-    router.push("/admin")
-  }
+    localStorage.setItem("appointments", JSON.stringify(stored));
+    router.push("/create");
+  };
 
   return (
     <div className="min-h-screen bg-emerald-200 flex items-center justify-center px-6">
       <div className="bg-white w-full max-w-5xl rounded-3xl px-5">
-
-        <h1 className="text-3xl font-bold mb-8">
-          Create Appointment Slot
-        </h1>
+        <h1 className="text-3xl font-bold mb-8">Create Appointment Slot</h1>
 
         <div className="grid grid-cols-2 gap-6">
-
           {/* Service Title */}
           <div>
             <label className="block text-sm font-semibold mb-2">
@@ -131,8 +128,6 @@ export default function CreateSlotPage() {
                 onChange={handleImage}
               />
             </label>
-
-            
           </div>
 
           <div>
@@ -149,9 +144,7 @@ export default function CreateSlotPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2">
-              End Date
-            </label>
+            <label className="block text-sm font-semibold mb-2">End Date</label>
             <input
               type="date"
               name="endDate"
@@ -175,9 +168,7 @@ export default function CreateSlotPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-2">
-              End Time
-            </label>
+            <label className="block text-sm font-semibold mb-2">End Time</label>
             <input
               type="time"
               name="endTime"
@@ -212,8 +203,6 @@ export default function CreateSlotPage() {
           </div>
         </div>
 
-        
-
         <button
           onClick={handleSubmit}
           className="w-full bg-emerald-400 hover:bg-emerald-500 text-white py-4 rounded-full font-semibold text-lg mt-9"
@@ -222,5 +211,5 @@ export default function CreateSlotPage() {
         </button>
       </div>
     </div>
-  )
+  );
 }

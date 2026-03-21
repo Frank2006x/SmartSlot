@@ -3,20 +3,140 @@
 import { useRouter } from "next/navigation";
 import { Calendar, Clock, Users, Plus } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { useEffect } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 const Page = () => {
   const router = useRouter();
   const { data: session } = authClient.useSession();
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [savingPhone, setSavingPhone] = useState(false);
+
   useEffect(() => {
     if (!session?.user) {
-      router.push("/login");
+      return;
     }
+
+    const checkPhone = async () => {
+      try {
+        const res = await fetch("/api/phone", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+
+        const data: { hasPhone: boolean; phoneNumber: string | null } =
+          await res.json();
+
+        if (!data.hasPhone) {
+          setShowPhoneModal(true);
+          setPhoneInput(data.phoneNumber ?? "");
+        } else {
+          setShowPhoneModal(false);
+        }
+      } catch (error) {
+        console.error("Phone check failed", error);
+      }
+    };
+
+    checkPhone();
   }, [session, router]);
+  useEffect(() => {
+    setTimeout(() => {
+      if (!session?.user) {
+        router.push("/login");
+      }
+    }, 1500);
+  }, [session, router]);
+
+  const handleSavePhone = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedPhone = phoneInput.trim();
+
+    if (!trimmedPhone) {
+      setPhoneError("Please enter a phone number");
+      return;
+    }
+
+    setSavingPhone(true);
+    setPhoneError(null);
+
+    try {
+      const res = await fetch("/api/phone", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ phoneNumber: trimmedPhone }),
+      });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        setPhoneError(body.error || "Unable to save phone number");
+        return;
+      }
+
+      setShowPhoneModal(false);
+    } catch (error) {
+      console.error("Failed to save phone number", error);
+      setPhoneError("Something went wrong. Please try again.");
+    } finally {
+      setSavingPhone(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 flex items-center justify-center p-6">
       <div className="max-w-6xl w-full">
+        {showPhoneModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Add your phone
+                </h2>
+                <p className="text-sm text-gray-600">
+                  We use your phone number for important booking updates. Please
+                  add it to continue.
+                </p>
+              </div>
+
+              <form className="space-y-4" onSubmit={handleSavePhone}>
+                <label className="block text-sm font-medium text-gray-700">
+                  Phone number
+                  <input
+                    className="mt-2 w-full rounded-lg border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    value={phoneInput}
+                    onChange={(event) => setPhoneInput(event.target.value)}
+                    placeholder="e.g. +1 555 123 4567"
+                    autoFocus
+                  />
+                </label>
+
+                {phoneError && (
+                  <p className="text-sm text-red-600">{phoneError}</p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={savingPhone}
+                  className="w-full py-3 px-4 rounded-lg bg-emerald-500 text-white font-semibold hover:bg-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                >
+                  {savingPhone ? "Saving..." : "Save and continue"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
