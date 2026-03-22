@@ -172,7 +172,7 @@ export default function CreateSlotPage() {
       });
 
       const slug = data?.form?.slug;
-      router.push(slug ? `/create?created=${slug}` : "/create");
+      router.push("/create");
     } catch (error) {
       const err = error as AxiosError<{ error?: string }>;
       const message =

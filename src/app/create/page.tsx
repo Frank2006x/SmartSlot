@@ -5,16 +5,19 @@ import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
 import { Search } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
+import axios, { AxiosError } from "axios";
 
-type Appointment = {
+type FormSummary = {
   id: string;
-  patientName: string;
-  treatment: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  notes: string;
-  status: string;
+  slug: string;
+  title: string;
+  startsOn: string;
+  endsOn: string;
+  dayStartTime: string;
+  dayEndTime: string;
+  timezone: string;
+  isActive: boolean;
+  createdAt: string;
 };
 
 export default function AdminPage() {
@@ -24,7 +27,9 @@ export default function AdminPage() {
 function AdminDashboard() {
   const router = useRouter();
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [forms, setForms] = useState<FormSummary[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
 
   const handleSignOut = async () => {
@@ -37,15 +42,29 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("appointments") || "[]");
-    setAppointments(stored);
-  }, []);
+    const fetchForms = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data } = await axios.get<{ forms: FormSummary[] }>(
+          "/api/appointments",
+          { withCredentials: true },
+        );
+        setForms(data.forms ?? []);
+      } catch (err) {
+        const error = err as AxiosError<{ error?: string }>;
+        if (error.response?.status === 401) {
+          router.push("/login");
+          return;
+        }
+        setError(error.response?.data?.error || error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const deleteAppointment = (id: string) => {
-    const updated = appointments.filter((a) => a.id !== id);
-    setAppointments(updated);
-    localStorage.setItem("appointments", JSON.stringify(updated));
-  };
+    fetchForms();
+  }, [router]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100">
@@ -115,16 +134,14 @@ function AdminDashboard() {
           </div>
 
           <div className="w-72 space-y-4">
-            <Stat label="Total appointments" value={appointments.length} />
+            <Stat label="Forms" value={forms.length} />
             <Stat
-              label="Pending"
-              value={appointments.filter((a) => a.status === "Upcoming").length}
+              label="Active"
+              value={forms.filter((f) => f.isActive).length}
             />
             <Stat
-              label="Completed"
-              value={
-                appointments.filter((a) => a.status === "Completed").length
-              }
+              label="Inactive"
+              value={forms.filter((f) => !f.isActive).length}
             />
           </div>
         </div>
@@ -141,43 +158,47 @@ function AdminDashboard() {
 
           <div className="bg-white rounded-xl p-6 flex flex-col">
             <div className="font-semibold text-lg mb-4">
-              Current Appointments
+              Your Appointment Forms
             </div>
 
-            {appointments.length === 0 ? (
-              <div className="text-gray-400 text-sm">No appointments yet</div>
+            {loading ? (
+              <div className="text-gray-400 text-sm">Loading forms…</div>
+            ) : error ? (
+              <div className="text-red-500 text-sm">{error}</div>
+            ) : forms.length === 0 ? (
+              <div className="text-gray-400 text-sm">No forms yet</div>
             ) : (
               <div className="space-y-3 overflow-hidden">
-                {appointments.map((a) => (
+                {forms.map((form) => (
                   <div
-                    key={a.id}
+                    key={form.id}
                     className="border rounded-lg px-4 py-3 flex justify-between items-center hover:bg-gray-50"
                   >
                     <div>
-                      <div className="font-semibold">{a.patientName}</div>
-                      <div className="text-sm text-gray-400">{a.treatment}</div>
+                      <div className="font-semibold">{form.title}</div>
                       <div className="text-sm text-gray-500">
-                        {a.startTime} – {a.endTime}
+                        {form.startsOn} – {form.endsOn}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {form.dayStartTime} – {form.dayEndTime} ({form.timezone}
+                        )
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-full bg-gray-100 text-sm">
-                        {a.status}
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm ${form.isActive ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}
+                      >
+                        {form.isActive ? "Active" : "Inactive"}
                       </span>
 
                       <button
-                        onClick={() => router.push(`/admin/${a.id}`)}
+                        onClick={() =>
+                          router.push(`/create/form?slug=${form.slug}`)
+                        }
                         className="text-emerald-500 font-semibold hover:bg-emerald-200 rounded-md p-3"
                       >
-                        View
-                      </button>
-
-                      <button
-                        onClick={() => deleteAppointment(a.id)}
-                        className="text-red-500 font-bold"
-                      >
-                        ✕
+                        Open
                       </button>
                     </div>
                   </div>

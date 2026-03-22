@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
@@ -224,6 +224,29 @@ export async function POST(request: Request) {
     console.error("Error creating appointment form", error);
     return NextResponse.json(
       { error: "Failed to create appointment" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET() {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const forms = await db
+      .select()
+      .from(appointmentForm)
+      .where(eq(appointmentForm.userId, session.session.userId))
+      .orderBy(desc(appointmentForm.createdAt));
+
+    return NextResponse.json({ forms }, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching appointment forms", error);
+    return NextResponse.json(
+      { error: "Failed to fetch appointment forms" },
       { status: 500 },
     );
   }
