@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import {
   CalendarDays,
@@ -104,6 +104,7 @@ const hexToRgba = (hex: string, alpha: number) => {
 export default function BookPage() {
   const searchParams = useSearchParams();
   const slug = searchParams.get("form");
+  const router = useRouter();
   const { data: session } = useSession();
 
   const [form, setForm] = useState<FormDetails | null>(null);
@@ -139,6 +140,19 @@ export default function BookPage() {
       !guestEmail.trim()
     );
   }, [bookingLoading, selectedSlotId, guestName, guestEmail]);
+
+  // If this browser already booked this form, send them to their bookings view.
+  useEffect(() => {
+    if (!slug) return;
+    try {
+      const prior = localStorage.getItem(`booking_${slug}`);
+      if (prior) {
+        router.replace("/bookings");
+      }
+    } catch (err) {
+      console.error("Booking redirect check failed", err);
+    }
+  }, [router, slug]);
 
   useEffect(() => {
     if (!slug) return;
@@ -201,6 +215,32 @@ export default function BookPage() {
     }
   }, [session]);
 
+  // If the signed-in user already has a booking for this form, redirect to bookings.
+  useEffect(() => {
+    if (!slug || !session?.user?.email) return;
+
+    const checkExisting = async () => {
+      try {
+        const res = await axios.get<{ booking: Booking | null }>(
+          `/api/appointments/${slug}/my-booking`,
+        );
+        if (res.data?.booking) {
+          try {
+            localStorage.setItem(`booking_${slug}`, res.data.booking.id);
+          } catch (err) {
+            console.error("Persisting booking flag failed", err);
+          }
+          router.replace("/bookings");
+        }
+      } catch (err) {
+        if (err instanceof AxiosError && err.response?.status === 401) return;
+        console.error("Existing booking lookup failed", err);
+      }
+    };
+
+    checkExisting();
+  }, [router, session?.user?.email, slug]);
+
   const handleBook = async () => {
     if (!slug || !selectedSlotId) return;
     setBookingLoading(true);
@@ -217,6 +257,11 @@ export default function BookPage() {
         },
       );
       setBookingSuccess(res.data.booking);
+      try {
+        localStorage.setItem(`booking_${slug}`, res.data.booking.id);
+      } catch (err) {
+        console.error("Persisting booking flag failed", err);
+      }
     } catch (err) {
       const message =
         err instanceof AxiosError
