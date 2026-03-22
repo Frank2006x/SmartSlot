@@ -6,9 +6,15 @@ import Link from "next/link";
 import { SwatchBook } from "lucide-react";
 import { motion } from "framer-motion";
 
+const easeStandard = [0.22, 1, 0.36, 1] as const;
+
 const fadeUpVariants = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: easeStandard },
+  },
 };
 
 const staggerContainer = {
@@ -27,7 +33,7 @@ const Main = () => {
       <motion.div
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: easeStandard }}
         className="w-full bg-white flex flex-wrap items-center justify-between px-6 md:px-12 lg:px-28 py-4 fixed z-10 shadow-sm"
       >
         <div className="flex items-center gap-2">
@@ -104,7 +110,7 @@ const Main = () => {
               visible: {
                 opacity: 1,
                 x: 0,
-                transition: { duration: 0.8, ease: "easeOut" },
+                transition: { duration: 0.8, ease: easeStandard },
               },
             }}
             className="flex items-center justify-center lg:justify-end w-full lg:w-1/2"
