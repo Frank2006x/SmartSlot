@@ -1,4 +1,4 @@
-import { defineRelations } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -96,45 +96,32 @@ export const phoneNumber = pgTable(
   (table) => [uniqueIndex("phone_number_unique_idx").on(table.phoneNumber)],
 );
 
-export const authRelations = defineRelations(
-  {
-    user,
-    session,
-    account,
-    phoneNumber,
-  },
-  (r) => ({
-    user: {
-      phoneNumber: r.one.phoneNumber({
-        from: r.user.id,
-        to: r.phoneNumber.userId,
-      }),
-      sessions: r.many.session({
-        from: r.user.id,
-        to: r.session.userId,
-      }),
-      accounts: r.many.account({
-        from: r.user.id,
-        to: r.account.userId,
-      }),
-    },
-    phoneNumber: {
-      user: r.one.user({
-        from: r.phoneNumber.userId,
-        to: r.user.id,
-      }),
-    },
-    session: {
-      user: r.one.user({
-        from: r.session.userId,
-        to: r.user.id,
-      }),
-    },
-    account: {
-      user: r.one.user({
-        from: r.account.userId,
-        to: r.user.id,
-      }),
-    },
+export const userRelations = relations(user, ({ one, many }) => ({
+  phoneNumber: one(phoneNumber, {
+    fields: [user.id],
+    references: [phoneNumber.userId],
   }),
-);
+  sessions: many(session),
+  accounts: many(account),
+}));
+
+export const phoneNumberRelations = relations(phoneNumber, ({ one }) => ({
+  user: one(user, {
+    fields: [phoneNumber.userId],
+    references: [user.id],
+  }),
+}));
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}));
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
+}));
