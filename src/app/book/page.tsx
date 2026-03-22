@@ -13,7 +13,7 @@ import {
   User,
 } from "lucide-react";
 
-import { signInWithGoogle, useSession } from "@/lib/auth-client";
+import { signInWithGoogle, useSession, signOut } from "@/lib/auth-client";
 
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -68,12 +68,18 @@ const formatDateTime = (value: string, timezone?: string) => {
 
 const formatDateOnly = (value: string, timezone?: string) => {
   const d = new Date(value);
-  return d.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: timezone });
+  return d.toLocaleDateString(undefined, {
+    dateStyle: "medium",
+    timeZone: timezone,
+  });
 };
 
 const formatTimeOnly = (value: string, timezone?: string) => {
   const d = new Date(value);
-  return d.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: timezone });
+  return d.toLocaleTimeString(undefined, {
+    timeStyle: "short",
+    timeZone: timezone,
+  });
 };
 
 const hexRegex = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
@@ -235,7 +241,7 @@ export default function BookPage() {
           className="rounded-2xl border bg-white shadow-sm"
           style={{ borderColor: accentSoft }}
         >
-          <div className="flex flex-col gap-4 px-6 py-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-4 px-6 py-6 md:flex-row md:flex-wrap md:items-center md:justify-between">
             <div className="space-y-2">
               <div
                 className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
@@ -243,42 +249,80 @@ export default function BookPage() {
               >
                 <Sparkles size={14} /> Booking link
               </div>
-              <h1 className="text-2xl font-bold text-slate-900">Book an appointment</h1>
+              <h1 className="text-2xl font-bold text-slate-900">
+                Book an appointment
+              </h1>
               <p className="text-sm text-slate-600">
-                Pick a time, share your contact, and we will confirm via email. No account required.
+                Pick a time, share your contact, and we will confirm via email.
+                No account required.
               </p>
             </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="border-slate-200 text-slate-800 hover:bg-slate-50"
-                onClick={() => signInWithGoogle(window.location.href)}
-              >
-                Continue with Google (optional)
-              </Button>
+            <div className="flex items-center gap-3">
+              {session?.user ? (
+                <>
+                  <img
+                    src={session.user.image || "/default-avatar.png"}
+                    alt={session.user.name || "Profile"}
+                    className="w-10 h-10 rounded-full border border-slate-200 object-cover"
+                  />
+                  <div className="flex flex-col text-xs text-slate-700">
+                    <span className="font-semibold text-slate-900">
+                      {session.user.name || "Signed in"}
+                    </span>
+                    <span className="text-slate-500">{session.user.email}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="border-slate-200 text-slate-800 hover:bg-slate-50"
+                    onClick={async () => {
+                      try {
+                        await signOut();
+                        window.location.reload();
+                      } catch (err) {
+                        console.error("Sign out failed", err);
+                      }
+                    }}
+                  >
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="border-slate-200 text-slate-800 hover:bg-slate-50"
+                  onClick={() => signInWithGoogle(window.location.href)}
+                >
+                  Continue with Google (optional)
+                </Button>
+              )}
             </div>
+
+            {form && (
+              <div
+                className="border-t px-6 py-4 grid gap-3 sm:grid-cols-3 text-sm text-slate-700"
+                style={{ borderColor: accentSoft }}
+              >
+                <div className="flex items-center gap-2">
+                  <CalendarDays size={16} className="text-slate-500" />
+                  <span>
+                    {form.startsOn} – {form.endsOn}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock size={16} className="text-slate-500" />
+                  <span>
+                    {form.durationMinutes}m slot · {form.slotGapMinutes}m gap
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <User size={16} className="text-slate-500" />
+                  <span>{form.timezone}</span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {form && (
-            <div className="border-t px-6 py-4 grid gap-3 sm:grid-cols-3 text-sm text-slate-700" style={{ borderColor: accentSoft }}>
-              <div className="flex items-center gap-2">
-                <CalendarDays size={16} className="text-slate-500" />
-                <span>
-                  {form.startsOn} – {form.endsOn}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock size={16} className="text-slate-500" />
-                <span>
-                  {form.durationMinutes}m slot · {form.slotGapMinutes}m gap
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <User size={16} className="text-slate-500" />
-                <span>{form.timezone}</span>
-              </div>
-            </div>
-          )}
+          {/* Close header card */}
         </div>
 
         {!slug && (
@@ -304,9 +348,15 @@ export default function BookPage() {
                   <>
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1">
-                        <p className="text-xs uppercase tracking-wide text-gray-500">Form</p>
-                        <p className="text-xl font-semibold text-gray-900">{form.title}</p>
-                        <p className="text-sm text-gray-600 leading-relaxed">{form.description}</p>
+                        <p className="text-xs uppercase tracking-wide text-gray-500">
+                          Form
+                        </p>
+                        <p className="text-xl font-semibold text-gray-900">
+                          {form.title}
+                        </p>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          {form.description}
+                        </p>
                       </div>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-3 text-sm text-gray-600">
@@ -319,7 +369,8 @@ export default function BookPage() {
                       <div className="flex items-center gap-2">
                         <Clock size={16} className="text-gray-500" />
                         <span>
-                          {form.durationMinutes}m slot · {form.slotGapMinutes}m gap
+                          {form.durationMinutes}m slot · {form.slotGapMinutes}m
+                          gap
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -337,8 +388,12 @@ export default function BookPage() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Select a slot</p>
-                    <p className="text-xs text-gray-500">Slots are filtered by the date you pick.</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      Select a slot
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Slots are filtered by the date you pick.
+                    </p>
                   </div>
                   {selectedDate && (
                     <span
@@ -355,7 +410,9 @@ export default function BookPage() {
                 ) : slotsError ? (
                   <div className="text-sm text-red-600">{slotsError}</div>
                 ) : slots.length === 0 ? (
-                  <div className="text-sm text-gray-600">No available slots for this date.</div>
+                  <div className="text-sm text-gray-600">
+                    No available slots for this date.
+                  </div>
                 ) : (
                   <div className="grid sm:grid-cols-2 gap-3">
                     {slots.map((slot) => {
@@ -365,7 +422,9 @@ export default function BookPage() {
                           key={slot.id}
                           className={cn(
                             "w-full text-left rounded-xl border px-4 py-3 shadow-sm transition focus:outline-none",
-                            isSelected ? "ring-2 ring-offset-2" : "hover:border-gray-300",
+                            isSelected
+                              ? "ring-2 ring-offset-2"
+                              : "hover:border-gray-300",
                           )}
                           style={{
                             borderColor: isSelected ? accent : accentSoft,
@@ -378,10 +437,16 @@ export default function BookPage() {
                             <div className="text-sm font-semibold text-gray-900">
                               {formatDateOnly(slot.startAt, form?.timezone)}
                             </div>
-                            {isSelected && <CheckCircle2 size={16} className="text-emerald-600" />}
+                            {isSelected && (
+                              <CheckCircle2
+                                size={16}
+                                className="text-emerald-600"
+                              />
+                            )}
                           </div>
                           <div className="text-xs text-gray-600">
-                            {formatTimeOnly(slot.startAt, form?.timezone)} – {formatTimeOnly(slot.endAt, form?.timezone)}
+                            {formatTimeOnly(slot.startAt, form?.timezone)} –{" "}
+                            {formatTimeOnly(slot.endAt, form?.timezone)}
                           </div>
                         </button>
                       );
@@ -418,7 +483,9 @@ export default function BookPage() {
                     />
                   </div>
                   <div className="flex flex-col gap-1 md:col-span-2">
-                    <label className="text-xs text-gray-600">Phone (optional)</label>
+                    <label className="text-xs text-gray-600">
+                      Phone (optional)
+                    </label>
                     <input
                       className="border rounded-lg px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                       value={guestPhone}
@@ -429,14 +496,19 @@ export default function BookPage() {
                   </div>
                 </div>
 
-                {bookingError && <div className="text-sm text-red-600">{bookingError}</div>}
+                {bookingError && (
+                  <div className="text-sm text-red-600">{bookingError}</div>
+                )}
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                   <Button
                     onClick={handleBook}
                     disabled={isBookDisabled}
                     className="px-5"
-                    style={{ backgroundColor: isBookDisabled ? undefined : accent, borderColor: accent }}
+                    style={{
+                      backgroundColor: isBookDisabled ? undefined : accent,
+                      borderColor: accent,
+                    }}
                   >
                     {bookingLoading ? "Booking..." : "Book this slot"}
                   </Button>
@@ -448,14 +520,23 @@ export default function BookPage() {
                 {bookingSuccess && (
                   <div
                     className="mt-3 rounded-lg border p-3 text-sm"
-                    style={{ borderColor: accentSoft, backgroundColor: accentSoft }}
+                    style={{
+                      borderColor: accentSoft,
+                      backgroundColor: accentSoft,
+                    }}
                   >
-                    <div className="font-semibold text-gray-900">Booking confirmed</div>
+                    <div className="font-semibold text-gray-900">
+                      Booking confirmed
+                    </div>
                     <div className="text-gray-700">ID: {bookingSuccess.id}</div>
                     <div className="text-gray-700">
-                      When: {formatDateTime(bookingSuccess.startsAt, form?.timezone)} – {formatDateTime(bookingSuccess.endsAt, form?.timezone)}
+                      When:{" "}
+                      {formatDateTime(bookingSuccess.startsAt, form?.timezone)}{" "}
+                      – {formatDateTime(bookingSuccess.endsAt, form?.timezone)}
                     </div>
-                    <div className="text-gray-700">Email: {bookingSuccess.guestEmail}</div>
+                    <div className="text-gray-700">
+                      Email: {bookingSuccess.guestEmail}
+                    </div>
                   </div>
                 )}
               </div>
@@ -468,7 +549,9 @@ export default function BookPage() {
                 backgroundColor: hexToRgba(accent, 0.04),
               }}
             >
-              <div className="text-sm font-semibold text-gray-900">Pick a date</div>
+              <div className="text-sm font-semibold text-gray-900">
+                Pick a date
+              </div>
               <Calendar
                 mode="single"
                 className="w-full"
@@ -482,7 +565,8 @@ export default function BookPage() {
                 }}
               />
               <div className="text-xs text-gray-600 leading-relaxed">
-                Showing available slots only. Times are displayed in {form?.timezone || "your local timezone"}.
+                Showing available slots only. Times are displayed in{" "}
+                {form?.timezone || "your local timezone"}.
               </div>
               <div
                 className="rounded-xl border px-3 py-3 text-xs text-gray-700 flex flex-col gap-2"
