@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, Users, Plus } from "lucide-react";
+import { Calendar, Clock, Users, Plus, ListChecks } from "lucide-react";
 import axios, { AxiosError } from "axios";
 import { authClient } from "@/lib/auth-client";
 import { FormEvent, useEffect, useState } from "react";
@@ -192,14 +192,14 @@ const Page = () => {
             </div>
           </div>
 
-          {/* Book Appointments Card */}
+          {/* My Bookings Card */}
           <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-bl-full opacity-10"></div>
 
             <div className="p-8 relative z-10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-blue-100 rounded-full">
-                  <Calendar className="w-6 h-6 text-blue-600" />
+                  <ListChecks className="w-6 h-6 text-blue-600" />
                 </div>
                 <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
                   For Customers
@@ -207,33 +207,32 @@ const Page = () => {
               </div>
 
               <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                Book Appointments
+                My Booked Slots
               </h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Find and book available appointment slots quickly and easily
-                with our user-friendly interface.
+                View all the slots you’ve booked and their current status.
               </p>
 
               <div className="space-y-2 mb-8">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="w-4 h-4 text-blue-500" />
-                  <span>Easy booking process</span>
+                  <span>See upcoming times</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Clock className="w-4 h-4 text-blue-500" />
-                  <span>Real-time availability</span>
+                  <span>Status at a glance</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Users className="w-4 h-4 text-blue-500" />
-                  <span>Instant confirmation</span>
+                  <span>Details of each booking</span>
                 </div>
               </div>
 
               <button
-                onClick={() => router.push("/book")}
+                onClick={() => router.push("/bookings")}
                 className="w-full py-4 px-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Book Appointments →
+                View My Bookings →
               </button>
             </div>
           </div>
