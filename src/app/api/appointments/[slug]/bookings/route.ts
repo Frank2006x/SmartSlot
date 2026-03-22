@@ -55,7 +55,10 @@ export async function GET(
         slotEnd: appointmentSlot.endAt,
       })
       .from(appointmentBooking)
-      .leftJoin(appointmentSlot, eq(appointmentSlot.id, appointmentBooking.slotId))
+      .leftJoin(
+        appointmentSlot,
+        eq(appointmentSlot.id, appointmentBooking.slotId),
+      )
       .where(eq(appointmentBooking.formId, form.id))
       .orderBy(desc(appointmentBooking.startsAt));
 

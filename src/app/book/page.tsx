@@ -3,9 +3,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios, { AxiosError } from "axios";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Mail,
+  Phone,
+  Sparkles,
+  User,
+} from "lucide-react";
+
 import { signInWithGoogle, useSession } from "@/lib/auth-client";
 
 import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type FormDetails = {
@@ -55,6 +66,35 @@ const formatDateTime = (value: string, timezone?: string) => {
   });
 };
 
+const formatDateOnly = (value: string, timezone?: string) => {
+  const d = new Date(value);
+  return d.toLocaleDateString(undefined, { dateStyle: "medium", timeZone: timezone });
+};
+
+const formatTimeOnly = (value: string, timezone?: string) => {
+  const d = new Date(value);
+  return d.toLocaleTimeString(undefined, { timeStyle: "short", timeZone: timezone });
+};
+
+const hexRegex = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+const hexToRgba = (hex: string, alpha: number) => {
+  const normalized = hex.replace("#", "");
+  if (![3, 6].includes(normalized.length)) return `rgba(16,185,129,${alpha})`;
+  const full =
+    normalized.length === 3
+      ? normalized
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : normalized;
+  const intVal = parseInt(full, 16);
+  const r = (intVal >> 16) & 255;
+  const g = (intVal >> 8) & 255;
+  const b = intVal & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 export default function BookPage() {
   const searchParams = useSearchParams();
   const slug = searchParams.get("form");
@@ -76,6 +116,14 @@ export default function BookPage() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState<Booking | null>(null);
+
+  const accent = useMemo(() => {
+    const color = form?.coverColor;
+    return color && hexRegex.test(color) ? color : "#10b981";
+  }, [form?.coverColor]);
+
+  const accentSoft = useMemo(() => hexToRgba(accent, 0.14), [accent]);
+  const accentStrong = useMemo(() => hexToRgba(accent, 0.85), [accent]);
 
   const isBookDisabled = useMemo(() => {
     return (
@@ -182,37 +230,70 @@ export default function BookPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-5xl px-4 py-8 md:py-12">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
-          <div>
-            <p className="text-sm text-gray-500">SmartSlot booking</p>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Book an appointment
-            </h1>
-            <p className="text-sm text-gray-500">
-              Use the shared link to pick a time.
-            </p>
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 space-y-6">
+        <div
+          className="rounded-2xl border bg-white shadow-sm"
+          style={{ borderColor: accentSoft }}
+        >
+          <div className="flex flex-col gap-4 px-6 py-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <div
+                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide"
+                style={{ backgroundColor: accentSoft, color: accent }}
+              >
+                <Sparkles size={14} /> Booking link
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900">Book an appointment</h1>
+              <p className="text-sm text-slate-600">
+                Pick a time, share your contact, and we will confirm via email. No account required.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="border-slate-200 text-slate-800 hover:bg-slate-50"
+                onClick={() => signInWithGoogle(window.location.href)}
+              >
+                Continue with Google (optional)
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              className="border rounded-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => signInWithGoogle(window.location.href)}
-            >
-              Sign in with Google (optional)
-            </button>
-          </div>
+
+          {form && (
+            <div className="border-t px-6 py-4 grid gap-3 sm:grid-cols-3 text-sm text-slate-700" style={{ borderColor: accentSoft }}>
+              <div className="flex items-center gap-2">
+                <CalendarDays size={16} className="text-slate-500" />
+                <span>
+                  {form.startsOn} – {form.endsOn}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock size={16} className="text-slate-500" />
+                <span>
+                  {form.durationMinutes}m slot · {form.slotGapMinutes}m gap
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <User size={16} className="text-slate-500" />
+                <span>{form.timezone}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {!slug && (
-          <div className="bg-white border rounded-xl p-6 text-sm text-red-600">
+          <div className="bg-white border border-red-200 text-red-700 rounded-2xl p-6 text-sm shadow-sm">
             This booking link is missing a form identifier.
           </div>
         )}
 
         {slug && (
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 space-y-4">
-              <div className="bg-white border rounded-2xl p-6 shadow-sm">
+          <div className="grid gap-6 md:grid-cols-[minmax(0,_1.6fr)_minmax(360px,_1fr)]">
+            <div className="space-y-5">
+              <div
+                className="bg-white border rounded-2xl p-6 shadow-sm space-y-3"
+                style={{ borderColor: accentSoft }}
+              >
                 {formLoading ? (
                   <div className="text-sm text-gray-500">Loading form...</div>
                 ) : formError ? (
@@ -220,42 +301,52 @@ export default function BookPage() {
                 ) : !form ? (
                   <div className="text-sm text-gray-500">Form not found.</div>
                 ) : (
-                  <div className="space-y-3">
+                  <>
                     <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="text-xs uppercase tracking-wide text-gray-500">
-                          Form
-                        </div>
-                        <div className="text-xl font-semibold text-gray-900">
-                          {form.title}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {form.description}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {form.startsOn} - {form.endsOn} · {form.timezone}
-                        </div>
+                      <div className="space-y-1">
+                        <p className="text-xs uppercase tracking-wide text-gray-500">Form</p>
+                        <p className="text-xl font-semibold text-gray-900">{form.title}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">{form.description}</p>
                       </div>
-                      {statusBadge}
                     </div>
-                  </div>
+                    <div className="grid gap-3 sm:grid-cols-3 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays size={16} className="text-gray-500" />
+                        <span>
+                          {form.startsOn} – {form.endsOn}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} className="text-gray-500" />
+                        <span>
+                          {form.durationMinutes}m slot · {form.slotGapMinutes}m gap
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User size={16} className="text-gray-500" />
+                        <span>{form.timezone}</span>
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
 
-              <div className="bg-white border rounded-2xl p-6 shadow-sm space-y-4">
+              <div
+                className="bg-white border rounded-2xl p-6 shadow-sm space-y-4"
+                style={{ borderColor: accentSoft }}
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold text-gray-900">
-                      Select a slot
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Slots are shown for the selected date.
-                    </div>
+                    <p className="text-sm font-semibold text-gray-900">Select a slot</p>
+                    <p className="text-xs text-gray-500">Slots are filtered by the date you pick.</p>
                   </div>
                   {selectedDate && (
-                    <div className="text-xs text-gray-500">
+                    <span
+                      className="rounded-full px-3 py-1 text-xs font-semibold"
+                      style={{ backgroundColor: accentSoft, color: accent }}
+                    >
                       {selectedDate.toISOString().slice(0, 10)}
-                    </div>
+                    </span>
                   )}
                 </div>
 
@@ -264,9 +355,7 @@ export default function BookPage() {
                 ) : slotsError ? (
                   <div className="text-sm text-red-600">{slotsError}</div>
                 ) : slots.length === 0 ? (
-                  <div className="text-sm text-gray-600">
-                    No available slots for this date.
-                  </div>
+                  <div className="text-sm text-gray-600">No available slots for this date.</div>
                 ) : (
                   <div className="grid sm:grid-cols-2 gap-3">
                     {slots.map((slot) => {
@@ -275,18 +364,24 @@ export default function BookPage() {
                         <button
                           key={slot.id}
                           className={cn(
-                            "w-full border rounded-lg px-4 py-3 text-left transition",
-                            isSelected
-                              ? "border-emerald-500 bg-emerald-50"
-                              : "hover:border-emerald-200",
+                            "w-full text-left rounded-xl border px-4 py-3 shadow-sm transition focus:outline-none",
+                            isSelected ? "ring-2 ring-offset-2" : "hover:border-gray-300",
                           )}
+                          style={{
+                            borderColor: isSelected ? accent : accentSoft,
+                            backgroundColor: isSelected ? accentSoft : "white",
+                            color: isSelected ? "#0f172a" : "inherit",
+                          }}
                           onClick={() => setSelectedSlotId(slot.id)}
                         >
-                          <div className="text-sm font-semibold text-gray-900">
-                            {formatDateTime(slot.startAt, form?.timezone)}
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-semibold text-gray-900">
+                              {formatDateOnly(slot.startAt, form?.timezone)}
+                            </div>
+                            {isSelected && <CheckCircle2 size={16} className="text-emerald-600" />}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {formatDateTime(slot.endAt, form?.timezone)}
+                          <div className="text-xs text-gray-600">
+                            {formatTimeOnly(slot.startAt, form?.timezone)} – {formatTimeOnly(slot.endAt, form?.timezone)}
                           </div>
                         </button>
                       );
@@ -295,9 +390,12 @@ export default function BookPage() {
                 )}
               </div>
 
-              <div className="bg-white border rounded-2xl p-6 shadow-sm space-y-4">
-                <div className="text-sm font-semibold text-gray-900">
-                  Your details
+              <div
+                className="bg-white border rounded-2xl p-6 shadow-sm space-y-4"
+                style={{ borderColor: accentSoft }}
+              >
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                  <User size={16} className="text-gray-500" /> Your details
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="flex flex-col gap-1">
@@ -320,9 +418,7 @@ export default function BookPage() {
                     />
                   </div>
                   <div className="flex flex-col gap-1 md:col-span-2">
-                    <label className="text-xs text-gray-600">
-                      Phone (optional)
-                    </label>
+                    <label className="text-xs text-gray-600">Phone (optional)</label>
                     <input
                       className="border rounded-lg px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none"
                       value={guestPhone}
@@ -333,49 +429,49 @@ export default function BookPage() {
                   </div>
                 </div>
 
-                {bookingError && (
-                  <div className="text-sm text-red-600">{bookingError}</div>
-                )}
+                {bookingError && <div className="text-sm text-red-600">{bookingError}</div>}
 
-                <div className="flex items-center gap-3">
-                  <button
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <Button
                     onClick={handleBook}
                     disabled={isBookDisabled}
-                    className={cn(
-                      "rounded-full px-5 py-2 text-sm font-semibold text-white",
-                      isBookDisabled
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-emerald-500 hover:bg-emerald-600",
-                    )}
+                    className="px-5"
+                    style={{ backgroundColor: isBookDisabled ? undefined : accent, borderColor: accent }}
                   >
                     {bookingLoading ? "Booking..." : "Book this slot"}
-                  </button>
+                  </Button>
                   <span className="text-xs text-gray-500">
                     No login required. Google sign-in is optional for autofill.
                   </span>
                 </div>
 
                 {bookingSuccess && (
-                  <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                    <div className="font-semibold">Booking confirmed</div>
-                    <div>ID: {bookingSuccess.id}</div>
-                    <div>
-                      When:{" "}
-                      {formatDateTime(bookingSuccess.startsAt, form?.timezone)}{" "}
-                      - {formatDateTime(bookingSuccess.endsAt, form?.timezone)}
+                  <div
+                    className="mt-3 rounded-lg border p-3 text-sm"
+                    style={{ borderColor: accentSoft, backgroundColor: accentSoft }}
+                  >
+                    <div className="font-semibold text-gray-900">Booking confirmed</div>
+                    <div className="text-gray-700">ID: {bookingSuccess.id}</div>
+                    <div className="text-gray-700">
+                      When: {formatDateTime(bookingSuccess.startsAt, form?.timezone)} – {formatDateTime(bookingSuccess.endsAt, form?.timezone)}
                     </div>
-                    <div>Email: {bookingSuccess.guestEmail}</div>
+                    <div className="text-gray-700">Email: {bookingSuccess.guestEmail}</div>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="bg-white border rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="text-sm font-semibold text-gray-900">
-                Pick a date
-              </div>
+            <div
+              className="bg-white border rounded-2xl p-6 shadow-sm space-y-4 h-fit"
+              style={{
+                borderColor: accentSoft,
+                backgroundColor: hexToRgba(accent, 0.04),
+              }}
+            >
+              <div className="text-sm font-semibold text-gray-900">Pick a date</div>
               <Calendar
                 mode="single"
+                className="w-full"
                 selected={selectedDate}
                 onSelect={(d) => setSelectedDate(d ?? undefined)}
                 disabled={(date) => {
@@ -385,9 +481,21 @@ export default function BookPage() {
                   return date < start || date > end;
                 }}
               />
-              <div className="text-xs text-gray-500">
-                Showing available slots only. Times are shown in{" "}
-                {form?.timezone || "your local timezone"}.
+              <div className="text-xs text-gray-600 leading-relaxed">
+                Showing available slots only. Times are displayed in {form?.timezone || "your local timezone"}.
+              </div>
+              <div
+                className="rounded-xl border px-3 py-3 text-xs text-gray-700 flex flex-col gap-2"
+                style={{ borderColor: accentSoft }}
+              >
+                <div className="flex items-center gap-2">
+                  <Mail size={14} className="text-gray-500" />
+                  <span>Confirmation goes to your email.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone size={14} className="text-gray-500" />
+                  <span>Phone is optional for reminders.</span>
+                </div>
               </div>
             </div>
           </div>

@@ -104,7 +104,9 @@ export default function CreatorBookingsPage() {
 
         <div className="bg-white border rounded-2xl shadow-sm p-6">
           {!slug ? (
-            <div className="text-sm text-red-600">Add ?slug=your-form-slug to view bookings.</div>
+            <div className="text-sm text-red-600">
+              Add ?slug=your-form-slug to view bookings.
+            </div>
           ) : loading ? (
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Loader2 size={16} className="animate-spin" /> Loading bookings...
@@ -143,7 +145,8 @@ export default function CreatorBookingsPage() {
                       </span>
                       {b.slotStart ? (
                         <span className="inline-flex items-center gap-1">
-                          <Calendar size={14} /> Slot: {formatDateTime(b.slotStart)}
+                          <Calendar size={14} /> Slot:{" "}
+                          {formatDateTime(b.slotStart)}
                         </span>
                       ) : null}
                     </div>
