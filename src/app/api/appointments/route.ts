@@ -4,7 +4,11 @@ import { eq } from "drizzle-orm";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
-import { appointmentForm } from "@/db/appointment-schema";
+import {
+  appointmentBlockedSlot,
+  appointmentForm,
+  appointmentSlot,
+} from "@/db/appointment-schema";
 
 const randomSlug = () =>
   Math.random()
@@ -41,6 +45,42 @@ const computeDayEndTime = (
   const totalDuration = slotCount * durationMinutes + totalGapMinutes;
   const endMinutes = startMinutes + totalDuration;
   return minutesToTime(endMinutes);
+};
+
+const buildSlots = (
+  startsOn: string,
+  dayStartTime: string,
+  durationMinutes: number,
+  slotGapMinutes: number,
+  slotCount: number,
+) => {
+  const startMinutes = timeToMinutes(dayStartTime);
+  if (startMinutes === null) return [] as { startAt: Date; endAt: Date }[];
+
+  const slots: { startAt: Date; endAt: Date }[] = [];
+  let cursor = startMinutes;
+
+  for (let i = 0; i < slotCount; i += 1) {
+    const slotStartMinutes = cursor;
+    const slotEndMinutes = slotStartMinutes + durationMinutes;
+
+    const toDate = (minutes: number) => {
+      const hours = Math.floor(minutes / 60)
+        .toString()
+        .padStart(2, "0");
+      const mins = (minutes % 60).toString().padStart(2, "0");
+      // Preserve provided date with local time component; timezone handling can be improved later.
+      return new Date(`${startsOn}T${hours}:${mins}:00`);
+    };
+
+    slots.push({
+      startAt: toDate(slotStartMinutes),
+      endAt: toDate(slotEndMinutes),
+    });
+    cursor = slotEndMinutes + slotGapMinutes;
+  }
+
+  return slots;
 };
 
 const generateUniqueSlug = async () => {
@@ -80,6 +120,7 @@ export async function POST(request: Request) {
       slotCount = 1,
       timezone,
       isActive = true,
+      blockedSlots = [],
     } = body;
 
     if (!title || !startsOn || !dayStartTime || !durationMinutes || !timezone) {
@@ -124,6 +165,59 @@ export async function POST(request: Request) {
         isActive: Boolean(isActive),
       })
       .returning();
+
+    const generatedSlots = buildSlots(
+      startsOn,
+      dayStartTime,
+      Number(durationMinutes),
+      Number(slotGapMinutes ?? 0),
+      Number(slotCount ?? 1),
+    );
+
+    const validBlockedSlots = Array.isArray(blockedSlots)
+      ? blockedSlots
+          .map((slot: { startsAt?: string; endsAt?: string }) => ({
+            startsAt: slot?.startsAt,
+            endsAt: slot?.endsAt,
+          }))
+          .filter((slot) => Boolean(slot.startsAt && slot.endsAt))
+      : [];
+
+    if (validBlockedSlots.length > 0) {
+      await db.insert(appointmentBlockedSlot).values(
+        validBlockedSlots.map((slot) => ({
+          id: crypto.randomUUID(),
+          formId: inserted.id,
+          startsAt: new Date(slot.startsAt!),
+          endsAt: new Date(slot.endsAt!),
+        })),
+      );
+    }
+
+    const blockedRanges = validBlockedSlots.map((slot) => ({
+      startsAt: new Date(slot.startsAt!),
+      endsAt: new Date(slot.endsAt!),
+    }));
+
+    const slotsToInsert = generatedSlots.filter((slot) => {
+      return !blockedRanges.some(
+        (blocked) =>
+          slot.startAt < blocked.endsAt && blocked.startsAt < slot.endAt,
+      );
+    });
+
+    if (slotsToInsert.length > 0) {
+      await db.insert(appointmentSlot).values(
+        slotsToInsert.map((slot) => ({
+          id: crypto.randomUUID(),
+          formId: inserted.id,
+          startAt: slot.startAt,
+          endAt: slot.endAt,
+          status: "available",
+          isActive: true,
+        })),
+      );
+    }
 
     return NextResponse.json({ form: inserted }, { status: 201 });
   } catch (error) {

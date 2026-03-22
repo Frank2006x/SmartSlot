@@ -3,11 +3,17 @@
 import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios, { AxiosError } from "axios";
 
 type Slot = {
   start: string;
   end: string;
   disabled: boolean;
+};
+
+type BlockedSlotPayload = {
+  startsAt: string;
+  endsAt: string;
 };
 
 const defaultTimezone =
@@ -141,35 +147,38 @@ export default function CreateSlotPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/appointments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.title,
-          description: form.description,
-          coverColor: form.coverColor,
-          durationMinutes: form.durationMinutes,
-          slotGapMinutes: form.slotGapMinutes,
-          slotCount: form.slotCount,
-          startsOn: form.startsOn,
-          endsOn: form.endsOn || form.startsOn,
-          dayStartTime: form.dayStartTime,
-          timezone: form.timezone,
-          isActive: form.isActive,
-        }),
+      const blockedSlotsPayload: BlockedSlotPayload[] = slots
+        .filter((slot) => slot.disabled)
+        .map((slot) => ({
+          startsAt: `${form.startsOn}T${slot.start}:00`,
+          endsAt: `${form.startsOn}T${slot.end}:00`,
+        }));
+
+      const { data } = await axios.post<{
+        form?: { slug?: string };
+      }>("/api/appointments", {
+        title: form.title,
+        description: form.description,
+        coverColor: form.coverColor,
+        durationMinutes: form.durationMinutes,
+        slotGapMinutes: form.slotGapMinutes,
+        slotCount: form.slotCount,
+        startsOn: form.startsOn,
+        endsOn: form.endsOn || form.startsOn,
+        dayStartTime: form.dayStartTime,
+        timezone: form.timezone,
+        isActive: form.isActive,
+        blockedSlots: blockedSlotsPayload,
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to save appointment");
-      }
-
-      const data = await response.json();
       const slug = data?.form?.slug;
       router.push(slug ? `/create?created=${slug}` : "/create");
-    } catch (err) {
+    } catch (error) {
+      const err = error as AxiosError<{ error?: string }>;
+      const message =
+        err.response?.data?.error || err.message || "Something went wrong";
       console.error(err);
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(message);
     } finally {
       setSubmitting(false);
     }
