@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
-import { Copy, LogOut, Plus, Search, ListChecks } from "lucide-react";
+import { Copy, LogOut, Plus, ListChecks } from "lucide-react";
+import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
 import axios, { AxiosError } from "axios";
 
@@ -29,6 +30,8 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { data: session } = useSession();
+
+  const isFilteringByDate = Boolean(date);
 
   const handleSignOut = async () => {
     try {
@@ -63,21 +66,45 @@ export default function Page() {
     fetchForms();
   }, []);
 
+  const filteredForms = forms.filter((form) => {
+    if (!date) return true;
+
+    const selectedStart = new Date(date);
+    selectedStart.setHours(0, 0, 0, 0);
+    const selectedEnd = new Date(date);
+    selectedEnd.setHours(23, 59, 59, 999);
+
+    const starts = new Date(form.startsOn);
+    const ends = new Date(form.endsOn);
+
+    if (Number.isNaN(starts.getTime()) || Number.isNaN(ends.getTime())) {
+      return true;
+    }
+
+    return (
+      (starts <= selectedEnd && ends >= selectedStart) ||
+      starts.toDateString() === selectedStart.toDateString() ||
+      ends.toDateString() === selectedStart.toDateString()
+    );
+  });
+
   return (
     <div className="min-h-screen bg-slate-50">
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-emerald-500">
-              SmartSlot
-            </span>
-            <span className="text-sm text-gray-400">Dashboard</span>
-          </div>
+      <header className="border-b bg-white/80 backdrop-blur">
+        <div className="mx-auto flex items-center justify-between gap-6 px-6 py-4 max-w-6xl">
           <div className="flex items-center gap-3">
-            <div className="bg-gray-100 rounded-full px-3 py-2 text-sm text-gray-600 hidden sm:flex items-center gap-2">
-              <Search size={16} className="text-gray-400" />
-              <span>Find forms</span>
-            </div>
+            <Link
+              href="/"
+              className="text-2xl font-semibold text-emerald-600 transition hover:text-emerald-700"
+            >
+              SmartSlot
+            </Link>
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+              Dashboard
+            </span>
+          </div>
+          <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex"></nav>
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-white border rounded-full px-3 py-1 shadow-sm">
               <img
                 src={session?.user?.image || "/default-avatar.png"}
@@ -128,12 +155,25 @@ export default function Page() {
         <div className="grid gap-6 lg:grid-cols-5">
           <div className="lg:col-span-3 bg-white rounded-2xl shadow-sm border p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="font-semibold text-gray-800">
-                Your Appointment Forms
+              <div className="space-y-1">
+                <div className="font-semibold text-gray-800">
+                  Your Appointment Forms
+                </div>
+                <div className="text-xs text-gray-500">
+                  {isFilteringByDate && date
+                    ? `Showing forms for ${date.toLocaleDateString()}`
+                    : "Showing all forms"}
+                </div>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 inline-block"></span>
                 <span>Share links to collect bookings</span>
+                <button
+                  onClick={() => setDate(undefined)}
+                  className="ml-2 rounded-full border px-3 py-1 text-xs font-semibold text-gray-700 hover:border-emerald-200 hover:text-emerald-700"
+                >
+                  Show all
+                </button>
               </div>
             </div>
 
@@ -141,13 +181,15 @@ export default function Page() {
               <div className="text-gray-400 text-sm">Loading forms...</div>
             ) : error ? (
               <div className="text-red-500 text-sm">{error}</div>
-            ) : forms.length === 0 ? (
+            ) : filteredForms.length === 0 ? (
               <div className="text-gray-500 text-sm">
-                No forms yet. Create one to get a shareable link.
+                {date
+                  ? "No forms match the selected date."
+                  : "No forms yet. Create one to get a shareable link."}
               </div>
             ) : (
               <div className="space-y-3">
-                {forms.map((form) => (
+                {filteredForms.map((form) => (
                   <div
                     key={form.id}
                     className="border rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:border-emerald-200 hover:bg-emerald-50/40 transition"
@@ -175,15 +217,6 @@ export default function Page() {
                       >
                         {form.isActive ? "Active" : "Inactive"}
                       </span>
-
-                      <button
-                        onClick={() =>
-                          router.push(`/create/form?slug=${form.slug}`)
-                        }
-                        className="text-emerald-600 font-semibold hover:bg-emerald-100 rounded-md px-3 py-2 text-sm"
-                      >
-                        Open
-                      </button>
 
                       <button
                         onClick={() =>
@@ -220,7 +253,15 @@ export default function Page() {
 
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-white rounded-2xl shadow-sm border p-6">
-              <div className="font-semibold text-gray-800 mb-4">Calendar</div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="font-semibold text-gray-800">Calendar</div>
+                <button
+                  onClick={() => setDate(undefined)}
+                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-800"
+                >
+                  Show all
+                </button>
+              </div>
               <Calendar mode="single" selected={date} onSelect={setDate} />
             </div>
 

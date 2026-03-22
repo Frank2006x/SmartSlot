@@ -124,6 +124,11 @@ export default function BookPage() {
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState<Booking | null>(null);
 
+  const selectedSlot = useMemo(
+    () => slots.find((slot) => slot.id === selectedSlotId) || null,
+    [slots, selectedSlotId],
+  );
+
   const accent = useMemo(() => {
     const color = form?.coverColor;
     return color && hexRegex.test(color) ? color : "#10b981";
@@ -361,7 +366,9 @@ export default function BookPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <User size={16} className="text-slate-500" />
-                  <span>{form.timezone}</span>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                    {form.timezone}
+                  </span>
                 </div>
               </div>
             )}
@@ -489,9 +496,14 @@ export default function BookPage() {
                               />
                             )}
                           </div>
-                          <div className="text-xs text-gray-600">
-                            {formatTimeOnly(slot.startAt, form?.timezone)} –{" "}
-                            {formatTimeOnly(slot.endAt, form?.timezone)}
+                          <div className="flex items-center justify-between text-xs text-gray-600">
+                            <span>
+                              {formatTimeOnly(slot.startAt, form?.timezone)} –{" "}
+                              {formatTimeOnly(slot.endAt, form?.timezone)}
+                            </span>
+                            <span className="rounded-full bg-slate-100 px-2 py-1 font-semibold text-[11px] text-slate-700">
+                              {form?.timezone || "Local"}
+                            </span>
                           </div>
                         </button>
                       );
@@ -507,6 +519,32 @@ export default function BookPage() {
                 <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                   <User size={16} className="text-gray-500" /> Your details
                 </div>
+                {selectedSlot && (
+                  <div
+                    className="rounded-xl border px-3 py-3 text-xs text-gray-700 flex items-center justify-between"
+                    style={{
+                      borderColor: accentSoft,
+                      backgroundColor: accentSoft,
+                    }}
+                  >
+                    <div className="space-y-0.5">
+                      <div className="font-semibold text-gray-900">
+                        Selected slot
+                      </div>
+                      <div>
+                        {formatDateOnly(selectedSlot.startAt, form?.timezone)} ·{" "}
+                        {formatTimeOnly(selectedSlot.startAt, form?.timezone)} –{" "}
+                        {formatTimeOnly(selectedSlot.endAt, form?.timezone)}
+                      </div>
+                    </div>
+                    <span
+                      className="rounded-full bg-white/70 px-3 py-1 text-[11px] font-semibold text-slate-700 border"
+                      style={{ borderColor: accentSoft }}
+                    >
+                      {form?.timezone || "Local"}
+                    </span>
+                  </div>
+                )}
                 <div className="grid gap-3 md:grid-cols-2">
                   <div className="flex flex-col gap-1">
                     <label className="text-xs text-gray-600">Name</label>

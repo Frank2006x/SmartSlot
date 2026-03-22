@@ -5,6 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { appointmentBooking, appointmentForm } from "@/db/appointment-schema";
+import { user } from "@/db/auth-schema";
 
 export async function GET() {
   try {
@@ -28,12 +29,25 @@ export async function GET() {
         formTitle: appointmentForm.title,
         formSlug: appointmentForm.slug,
         timezone: appointmentForm.timezone,
+        formDescription: appointmentForm.description,
+        coverColor: appointmentForm.coverColor,
+        formStartsOn: appointmentForm.startsOn,
+        formEndsOn: appointmentForm.endsOn,
+        dayStartTime: appointmentForm.dayStartTime,
+        dayEndTime: appointmentForm.dayEndTime,
+        durationMinutes: appointmentForm.durationMinutes,
+        slotGapMinutes: appointmentForm.slotGapMinutes,
+        formActive: appointmentForm.isActive,
+        creatorName: user.name,
+        creatorEmail: user.email,
+        creatorImage: user.image,
       })
       .from(appointmentBooking)
       .innerJoin(
         appointmentForm,
         eq(appointmentForm.id, appointmentBooking.formId),
       )
+      .leftJoin(user, eq(user.id, appointmentForm.userId))
       .where(eq(appointmentBooking.guestEmail, session.user.email))
       .orderBy(desc(appointmentBooking.startsAt));
 
