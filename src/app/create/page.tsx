@@ -139,9 +139,6 @@ export default function Page() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="hidden sm:block">
-              <Stat label="Total" value={forms.length} />
-            </div>
             <button
               onClick={() => router.push("/create/form")}
               className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-white font-semibold shadow hover:bg-emerald-600"
@@ -264,36 +261,9 @@ export default function Page() {
               </div>
               <Calendar mode="single" selected={date} onSelect={setDate} />
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Stat label="Forms" value={forms.length} />
-              <Stat
-                label="Active"
-                value={forms.filter((f) => f.isActive).length}
-              />
-              <Stat
-                label="Inactive"
-                value={forms.filter((f) => !f.isActive).length}
-              />
-              <Stat
-                label="Timezone"
-                value={new Set(forms.map((f) => f.timezone)).size || 0}
-              />
-            </div>
           </div>
         </div>
       </main>
-    </div>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border text-center">
-      <div className="text-xs uppercase tracking-wide text-gray-500">
-        {label}
-      </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
     </div>
   );
 }

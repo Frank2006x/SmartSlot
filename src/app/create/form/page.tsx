@@ -4,6 +4,14 @@ import type { ChangeEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
+import {
+  ArrowLeft,
+  Clock3,
+  Globe2,
+  PaintBucket,
+  Share2,
+  Sparkles,
+} from "lucide-react";
 
 type Slot = {
   start: string;
@@ -185,210 +193,385 @@ export default function CreateSlotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-emerald-200 flex items-center justify-center px-6">
-      <div className="bg-white w-full max-w-6xl rounded-3xl px-5 py-8">
-        <h1 className="text-3xl font-bold mb-6">Create Appointment Form</h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-semibold mb-2">Title</label>
-            <input
-              name="title"
-              value={form.title}
-              onChange={handleTextChange}
-              placeholder="e.g. Consultation"
-              className="w-full border rounded-xl px-4 py-3 outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={handleTextChange}
-              placeholder="Describe the service..."
-              className="w-full border rounded-xl px-4 py-3 h-24 resize-none outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Cover Color
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                name="coverColor"
-                value={form.coverColor}
-                onChange={handleTextChange}
-                className="h-12 w-12 rounded-full border"
-              />
-              <input
-                name="coverColor"
-                value={form.coverColor}
-                onChange={handleTextChange}
-                className="w-full border rounded-xl px-4 py-3 outline-none"
-              />
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-emerald-50 px-6 py-10">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm">
+              <Sparkles size={14} />
+              Build a polished booking flow
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">Timezone</label>
-            <input
-              name="timezone"
-              value={form.timezone}
-              onChange={handleTextChange}
-              className="w-full border rounded-xl px-4 py-3 outline-none"
-              readOnly
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Starts On
-            </label>
-            <input
-              type="date"
-              name="startsOn"
-              value={form.startsOn}
-              onChange={handleTextChange}
-              className="w-full border rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">Ends On</label>
-            <input
-              type="date"
-              name="endsOn"
-              value={form.endsOn}
-              onChange={handleTextChange}
-              className="w-full border rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Day Start Time
-            </label>
-            <input
-              type="time"
-              name="dayStartTime"
-              value={form.dayStartTime}
-              onChange={handleTextChange}
-              className="w-full border rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Computed Day End Time
-            </label>
-            <input
-              type="time"
-              name="dayEndTime"
-              value={computedEndTime}
-              readOnly
-              className="w-full border rounded-xl px-4 py-3 bg-gray-100"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Slot Duration (minutes)
-            </label>
-            <input
-              type="number"
-              min={1}
-              name="durationMinutes"
-              value={form.durationMinutes}
-              onChange={handleNumberChange}
-              className="w-full border rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Gap Between Slots (minutes)
-            </label>
-            <input
-              type="number"
-              min={0}
-              name="slotGapMinutes"
-              value={form.slotGapMinutes}
-              onChange={handleNumberChange}
-              className="w-full border rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">
-              Number of Slots
-            </label>
-            <input
-              type="number"
-              min={1}
-              name="slotCount"
-              value={form.slotCount}
-              onChange={handleNumberChange}
-              className="w-full border rounded-xl px-4 py-3"
-            />
-          </div>
-
-          <div className="flex items-center gap-3 mt-2">
-            <input
-              id="isActive"
-              type="checkbox"
-              name="isActive"
-              checked={form.isActive}
-              onChange={handleCheckboxChange}
-              className="h-5 w-5"
-            />
-            <label htmlFor="isActive" className="text-sm font-semibold">
-              Form is active
-            </label>
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-3">Available Slots</h2>
-          {slots.length === 0 ? (
+            <h1 className="text-3xl font-bold text-gray-900">
+              Create appointment form
+            </h1>
             <p className="text-sm text-gray-600">
-              Enter start time and slot details to see generated slots.
+              Define your availability, preview slots, and launch a shareable
+              booking link.
             </p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {slots.map((slot) => (
-                <button
-                  key={`${slot.start}-${slot.end}`}
-                  type="button"
-                  onClick={() => toggleSlot(slot)}
-                  className={`flex justify-between items-center border rounded-xl px-4 py-3 text-left transition ${slot.disabled ? "bg-gray-100 border-gray-300 text-gray-500" : "bg-emerald-50 border-emerald-300"}`}
-                >
-                  <span>
-                    {slot.start} - {slot.end}
-                  </span>
-                  <span className="text-xs font-semibold uppercase">
-                    {slot.disabled ? "Disabled" : "Active"}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
+          </div>
+          <button
+            onClick={() => router.push("/create")}
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:-translate-y-0.5 hover:shadow"
+          >
+            <ArrowLeft size={16} />
+            Back to dashboard
+          </button>
         </div>
 
-        {error ? <p className="text-red-600 text-sm mt-4">{error}</p> : null}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <section className="rounded-2xl border border-emerald-100 bg-white/80 p-6 shadow-sm backdrop-blur">
+              <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <PaintBucket size={16} className="text-emerald-500" />
+                Essentials
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Title
+                  </label>
+                  <input
+                    name="title"
+                    value={form.title}
+                    onChange={handleTextChange}
+                    placeholder="e.g. Product walk-through"
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Shown on your booking card and confirmation emails.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={form.description}
+                    onChange={handleTextChange}
+                    placeholder="Set expectations: agenda, duration, who should attend."
+                    className="w-full h-28 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Cover color
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      name="coverColor"
+                      value={form.coverColor}
+                      onChange={handleTextChange}
+                      className="h-12 w-12 rounded-full border border-gray-200 shadow-sm"
+                    />
+                    <input
+                      name="coverColor"
+                      value={form.coverColor}
+                      onChange={handleTextChange}
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                    <Globe2 size={16} className="text-emerald-500" />
+                    Timezone
+                  </label>
+                  <input
+                    name="timezone"
+                    value={form.timezone}
+                    onChange={handleTextChange}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-800 shadow-inner outline-none"
+                    readOnly
+                  />
+                </div>
+              </div>
+            </section>
 
-        <button
-          onClick={handleSubmit}
-          disabled={submitting}
-          className="w-full bg-emerald-400 hover:bg-emerald-500 disabled:bg-emerald-300 text-white py-4 rounded-full font-semibold text-lg mt-9"
-        >
-          {submitting ? "Saving..." : "Save Form"}
-        </button>
+            <section className="rounded-2xl border border-emerald-100 bg-white/80 p-6 shadow-sm backdrop-blur">
+              <div className="mb-4 flex items-center justify-between text-sm font-semibold text-gray-800">
+                <div className="flex items-center gap-2">
+                  <Clock3 size={16} className="text-emerald-500" />
+                  Availability window
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="rounded-full bg-emerald-50 px-2 py-1 font-semibold text-emerald-700">
+                    Auto-computes end time
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Starts on *
+                  </label>
+                  <input
+                    type="date"
+                    name="startsOn"
+                    value={form.startsOn}
+                    onChange={handleTextChange}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Ends on
+                  </label>
+                  <input
+                    type="date"
+                    name="endsOn"
+                    value={form.endsOn}
+                    onChange={handleTextChange}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Leave blank to reuse the start date.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Day start time *
+                  </label>
+                  <input
+                    type="time"
+                    name="dayStartTime"
+                    value={form.dayStartTime}
+                    onChange={handleTextChange}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Computed day end
+                  </label>
+                  <input
+                    type="time"
+                    name="dayEndTime"
+                    value={computedEndTime}
+                    readOnly
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800 shadow-inner outline-none"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Based on slot count, duration, and gaps.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-emerald-100 bg-white/80 p-6 shadow-sm backdrop-blur">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm font-semibold text-gray-800">
+                <span>Slot rules</span>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  {[15, 30, 45, 60].map((preset) => (
+                    <button
+                      key={preset}
+                      onClick={() =>
+                        setForm((prev) => ({
+                          ...prev,
+                          durationMinutes: preset,
+                        }))
+                      }
+                      className={`rounded-full border px-3 py-1 font-semibold transition ${form.durationMinutes === preset ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 bg-white text-gray-700 hover:border-emerald-200"}`}
+                      type="button"
+                    >
+                      {preset}m
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Duration (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    name="durationMinutes"
+                    value={form.durationMinutes}
+                    onChange={handleNumberChange}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  />
+                  <p className="text-xs text-gray-500">
+                    How long each meeting lasts.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Gap between slots (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    name="slotGapMinutes"
+                    value={form.slotGapMinutes}
+                    onChange={handleNumberChange}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Buffer time to prep between meetings.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-800">
+                    Number of slots
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    name="slotCount"
+                    value={form.slotCount}
+                    onChange={handleNumberChange}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm shadow-inner outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Auto-generates the daily slot list.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                <div className="space-y-1">
+                  <div className="text-sm font-semibold text-gray-800">
+                    Form status
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Disable to hide the booking link without deleting it.
+                  </p>
+                </div>
+                <label className="inline-flex items-center gap-3 text-sm font-semibold text-gray-800">
+                  <input
+                    id="isActive"
+                    type="checkbox"
+                    name="isActive"
+                    checked={form.isActive}
+                    onChange={handleCheckboxChange}
+                    className="h-5 w-5 accent-emerald-500"
+                  />
+                  Active
+                </label>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-emerald-100 bg-white/80 p-6 shadow-sm backdrop-blur">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Available slots preview
+                </h2>
+                <span className="text-xs font-semibold text-emerald-700">
+                  Click to disable a slot for this day
+                </span>
+              </div>
+              {slots.length === 0 ? (
+                <p className="text-sm text-gray-600">
+                  Add a start time, duration, count, and buffer to see generated
+                  slots.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {slots.map((slot) => (
+                    <button
+                      key={`${slot.start}-${slot.end}`}
+                      type="button"
+                      onClick={() => toggleSlot(slot)}
+                      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-sm transition ${slot.disabled ? "border-gray-200 bg-gray-50 text-gray-500" : "border-emerald-200 bg-emerald-50 text-emerald-900 shadow-sm"}`}
+                    >
+                      <span className="font-semibold">
+                        {slot.start} - {slot.end}
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${slot.disabled ? "bg-gray-200 text-gray-700" : "bg-white text-emerald-700"}`}
+                      >
+                        {slot.disabled ? "Disabled" : "Active"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          <aside className="space-y-4 lg:sticky lg:top-10">
+            <div className="rounded-2xl border border-emerald-100 bg-white/80 p-5 shadow-sm backdrop-blur">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-500">
+                    Summary
+                  </p>
+                  <p className="text-lg font-bold text-gray-900">
+                    Launch-ready
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${form.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-600"}`}
+                >
+                  {form.isActive ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className="mt-4 space-y-3 text-sm text-gray-700">
+                <div className="flex items-center justify-between">
+                  <span>Window</span>
+                  <span className="font-semibold text-gray-900">
+                    {form.startsOn || "Start date"} →{" "}
+                    {form.endsOn || form.startsOn || "End date"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Daily hours</span>
+                  <span className="font-semibold text-gray-900">
+                    {form.dayStartTime || "--:--"} -{" "}
+                    {computedEndTime || "--:--"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Duration</span>
+                  <span className="font-semibold text-gray-900">
+                    {form.durationMinutes}m
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Gap</span>
+                  <span className="font-semibold text-gray-900">
+                    {form.slotGapMinutes}m
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Slots per day</span>
+                  <span className="font-semibold text-gray-900">
+                    {form.slotCount}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {error ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            ) : null}
+
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5 hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
+            >
+              <Share2 size={18} />
+              {submitting ? "Saving..." : "Save & share"}
+            </button>
+
+            <div className="rounded-2xl border border-dashed border-emerald-200 bg-white/60 p-4 text-sm text-gray-600 shadow-sm">
+              Tips
+              <ul className="mt-2 space-y-1 list-disc pl-5">
+                <li>Use shorter durations for quicker intro calls.</li>
+                <li>Add buffers to avoid back-to-back fatigue.</li>
+                <li>Disable specific slots to protect focus time.</li>
+              </ul>
+            </div>
+          </aside>
+        </div>
       </div>
     </div>
   );

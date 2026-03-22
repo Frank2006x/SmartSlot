@@ -172,21 +172,27 @@ export default function BookingsPage() {
             {error}
           </div>
         ) : bookings.length === 0 ? (
-          <div className="bg-white border rounded-2xl shadow-sm p-6 flex items-center justify-between">
-            <div>
+          <div className="bg-white border rounded-2xl shadow-sm p-8 flex flex-col items-center text-center gap-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 120 120"
+              className="h-16 w-16 text-gray-300"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="6"
+            >
+              <circle cx="60" cy="60" r="42" className="text-gray-200" />
+              <path d="M45 80c5 4 25 4 30 0" strokeLinecap="round" />
+              <path d="M45 52h.01M75 52h.01" strokeLinecap="round" />
+            </svg>
+            <div className="space-y-1">
               <div className="text-sm font-semibold text-gray-900">
                 No bookings yet.
               </div>
               <div className="text-sm text-gray-600">
-                Book your first slot to see it here.
+                Your confirmed bookings will appear here.
               </div>
             </div>
-            <Button
-              onClick={() => router.push("/book")}
-              className="bg-emerald-600 hover:bg-emerald-700"
-            >
-              Book now
-            </Button>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-[320px_1fr] lg:grid-cols-[360px_1fr]">
