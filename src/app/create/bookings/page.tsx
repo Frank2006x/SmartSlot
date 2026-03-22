@@ -2,51 +2,57 @@
 
 import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
-import { Calendar, Clock, Link as LinkIcon } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Calendar, Clock, Mail, Phone, User, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import { useSession } from "@/lib/auth-client";
 
-type Booking = {
+// Booking entries returned for a creator's form
+// slug in searchParams identifies which form to fetch
+// owner-only data: guest contact info and slot times
+
+type FormBooking = {
   id: string;
-  formId: string;
-  slotId: string | null;
   guestName: string;
   guestEmail: string;
   guestPhone: string | null;
   startsAt: string;
   endsAt: string;
   status: string;
-  formTitle: string;
-  formSlug: string;
-  timezone: string;
+  slotId: string | null;
+  slotStart: string | null;
+  slotEnd: string | null;
 };
 
-const formatDateTime = (value: string, timezone?: string) => {
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return "";
   const d = new Date(value);
   return d.toLocaleString(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone: timezone,
   });
 };
 
-export default function BookingsPage() {
+export default function CreatorBookingsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
 
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const slug = searchParams.get("slug");
+
+  const [bookings, setBookings] = useState<FormBooking[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!slug) return;
+
     const fetchBookings = async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await axios.get<{ bookings: Booking[] }>(
-          "/api/bookings/me",
+        const res = await axios.get<{ bookings: FormBooking[] }>(
+          `/api/appointments/${slug}/bookings`,
           {
             withCredentials: true,
           },
@@ -66,31 +72,43 @@ export default function BookingsPage() {
         setLoading(false);
       }
     };
+
     fetchBookings();
-  }, [router]);
+  }, [router, slug]);
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 py-8 md:py-12 space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-500">Your bookings</p>
-            <h1 className="text-2xl font-bold text-gray-900">Booked slots</h1>
+            <p className="text-sm text-gray-500">Form bookings</p>
+            <h1 className="text-2xl font-bold text-gray-900">Guest details</h1>
             <p className="text-sm text-gray-500">
               Signed in as {session?.user?.email || "guest"}
             </p>
+            {slug ? (
+              <p className="text-xs text-gray-500 mt-1">Form: {slug}</p>
+            ) : (
+              <p className="text-xs text-red-600 mt-1">Missing form slug</p>
+            )}
           </div>
-          <button
-            onClick={() => router.push("/book")}
-            className="text-sm font-semibold text-emerald-600 hover:text-emerald-700"
-          >
-            Book another slot →
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/create")}
+              className="text-sm font-semibold text-gray-600 hover:text-gray-800"
+            >
+              Back to dashboard
+            </button>
+          </div>
         </div>
 
         <div className="bg-white border rounded-2xl shadow-sm p-6">
-          {loading ? (
-            <div className="text-sm text-gray-500">Loading bookings...</div>
+          {!slug ? (
+            <div className="text-sm text-red-600">Add ?slug=your-form-slug to view bookings.</div>
+          ) : loading ? (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Loader2 size={16} className="animate-spin" /> Loading bookings...
+            </div>
           ) : error ? (
             <div className="text-sm text-red-600">{error}</div>
           ) : bookings.length === 0 ? (
@@ -100,37 +118,42 @@ export default function BookingsPage() {
               {bookings.map((b) => (
                 <div
                   key={b.id}
-                  className="border rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                  className="border rounded-xl px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
                 >
                   <div className="space-y-1">
-                    <div className="text-sm uppercase tracking-wide text-gray-500">
-                      {b.formTitle}
+                    <div className="flex items-center gap-2 text-sm text-gray-700 font-semibold">
+                      <User size={14} /> {b.guestName}
                     </div>
-                    <div className="text-base font-semibold text-gray-900">
-                      {formatDateTime(b.startsAt, b.timezone)} -{" "}
-                      {formatDateTime(b.endsAt, b.timezone)}
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                      <span className="inline-flex items-center gap-1">
+                        <Mail size={14} /> {b.guestEmail}
+                      </span>
+                      {b.guestPhone ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Phone size={14} /> {b.guestPhone}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900">
+                      {formatDateTime(b.startsAt)} - {formatDateTime(b.endsAt)}
                     </div>
                     <div className="flex gap-3 text-xs text-gray-500">
-                      <span className="inline-flex items-center gap-1">
-                        <Calendar size={14} /> {b.timezone}
-                      </span>
                       <span className="inline-flex items-center gap-1 capitalize">
                         <Clock size={14} /> {b.status}
                       </span>
+                      {b.slotStart ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar size={14} /> Slot: {formatDateTime(b.slotStart)}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <a
-                      className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 hover:underline"
-                      href={`/book?form=${b.formSlug}`}
-                    >
-                      <LinkIcon size={14} /> Open link
-                    </a>
                     <span
                       className={cn(
                         "px-3 py-1 rounded-full text-xs font-semibold",
                         b.status === "cancelled"
-                          ? "bg-gray-100 text-gray-500"
+                          ? "bg-gray-100 text-gray-600"
                           : b.status === "pending"
                             ? "bg-amber-100 text-amber-700"
                             : "bg-emerald-100 text-emerald-700",

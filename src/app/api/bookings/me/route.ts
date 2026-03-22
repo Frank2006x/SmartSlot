@@ -30,7 +30,10 @@ export async function GET() {
         timezone: appointmentForm.timezone,
       })
       .from(appointmentBooking)
-      .innerJoin(appointmentForm, eq(appointmentForm.id, appointmentBooking.formId))
+      .innerJoin(
+        appointmentForm,
+        eq(appointmentForm.id, appointmentBooking.formId),
+      )
       .where(eq(appointmentBooking.guestEmail, session.user.email))
       .orderBy(desc(appointmentBooking.startsAt));
 

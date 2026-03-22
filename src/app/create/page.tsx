@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
-import { Copy, LogOut, Plus, Search } from "lucide-react";
+import { Copy, LogOut, Plus, Search, ListChecks } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import axios, { AxiosError } from "axios";
 
@@ -101,7 +101,6 @@ export default function Page() {
           </div>
         </div>
       </header>
-
       <main className="mx-auto max-w-6xl px-6 py-6 space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -184,6 +183,15 @@ export default function Page() {
                         className="text-emerald-600 font-semibold hover:bg-emerald-100 rounded-md px-3 py-2 text-sm"
                       >
                         Open
+                      </button>
+
+                      <button
+                        onClick={() => router.push(`/create/bookings?slug=${form.slug}`)}
+                        className="inline-flex items-center gap-1 text-emerald-700 hover:bg-emerald-100 rounded-md px-3 py-2 text-sm"
+                        title="View bookings"
+                      >
+                        <ListChecks size={16} />
+                        Bookings
                       </button>
 
                       <button
