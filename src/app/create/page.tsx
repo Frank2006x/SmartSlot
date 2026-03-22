@@ -18,6 +18,7 @@ type FormSummary = {
   timezone: string;
   isActive: boolean;
   createdAt: string;
+  shareUrl?: string;
 };
 
 export default function AdminPage() {
@@ -30,6 +31,7 @@ function AdminDashboard() {
   const [forms, setForms] = useState<FormSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const { data: session } = useSession();
 
   const handleSignOut = async () => {
@@ -199,6 +201,21 @@ function AdminDashboard() {
                         className="text-emerald-500 font-semibold hover:bg-emerald-200 rounded-md p-3"
                       >
                         Open
+                      </button>
+
+                      <button
+                        onClick={async () => {
+                          const url =
+                            form.shareUrl ||
+                            `${window.location.origin}/book?form=${form.slug}`;
+                          await navigator.clipboard.writeText(url);
+                          setCopiedId(form.id);
+                          setTimeout(() => setCopiedId(null), 1500);
+                        }}
+                        className="text-emerald-600 font-semibold hover:bg-emerald-100 rounded-md p-3"
+                        title="Copy share link"
+                      >
+                        {copiedId === form.id ? "Copied" : "Copy link"}
                       </button>
                     </div>
                   </div>

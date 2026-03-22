@@ -16,6 +16,11 @@ const randomSlug = () =>
     .replace(/[^a-z0-9]/g, "")
     .slice(2, 10);
 
+const buildShareUrl = (origin: string | null, slug: string) => {
+  const base = origin || process.env.NEXT_PUBLIC_APP_URL || "";
+  return `${base}/book?form=${slug}`;
+};
+
 const timeToMinutes = (value: string) => {
   const [h, m] = value.split(":").map(Number);
   if (Number.isNaN(h) || Number.isNaN(m)) return null;
@@ -102,7 +107,8 @@ const generateUniqueSlug = async () => {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const hdrs = await headers();
+    const session = await auth.api.getSession({ headers: hdrs });
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -219,7 +225,12 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ form: inserted }, { status: 201 });
+    const shareUrl = buildShareUrl(hdrs.get("origin"), slug);
+
+    return NextResponse.json(
+      { form: { ...inserted, shareUrl } },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error creating appointment form", error);
     return NextResponse.json(
@@ -231,7 +242,8 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const hdrs = await headers();
+    const session = await auth.api.getSession({ headers: hdrs });
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -242,7 +254,13 @@ export async function GET() {
       .where(eq(appointmentForm.userId, session.session.userId))
       .orderBy(desc(appointmentForm.createdAt));
 
-    return NextResponse.json({ forms }, { status: 200 });
+    const origin = hdrs.get("origin");
+    const withLinks = forms.map((form) => ({
+      ...form,
+      shareUrl: buildShareUrl(origin, form.slug),
+    }));
+
+    return NextResponse.json({ forms: withLinks }, { status: 200 });
   } catch (error) {
     console.error("Error fetching appointment forms", error);
     return NextResponse.json(
