@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { defineRelations } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -117,50 +117,64 @@ export const appointmentBooking = pgTable(
   ],
 );
 
-export const appointmentFormRelations = relations(
-  appointmentForm,
-  ({ one, many }) => ({
-    user: one(user, {
-      fields: [appointmentForm.userId],
-      references: [user.id],
-    }),
-    slots: many(appointmentSlot),
-    blockedSlots: many(appointmentBlockedSlot),
-    bookings: many(appointmentBooking),
-  }),
-);
-
-export const appointmentSlotRelations = relations(
-  appointmentSlot,
-  ({ one }) => ({
-    form: one(appointmentForm, {
-      fields: [appointmentSlot.formId],
-      references: [appointmentForm.id],
-    }),
-    bookings: many(appointmentBooking),
-  }),
-);
-
-export const appointmentBlockedSlotRelations = relations(
-  appointmentBlockedSlot,
-  ({ one }) => ({
-    form: one(appointmentForm, {
-      fields: [appointmentBlockedSlot.formId],
-      references: [appointmentForm.id],
-    }),
-  }),
-);
-
-export const appointmentBookingRelations = relations(
-  appointmentBooking,
-  ({ one }) => ({
-    form: one(appointmentForm, {
-      fields: [appointmentBooking.formId],
-      references: [appointmentForm.id],
-    }),
-    slot: one(appointmentSlot, {
-      fields: [appointmentBooking.slotId],
-      references: [appointmentSlot.id],
-    }),
+export const appointmentRelations = defineRelations(
+  {
+    appointmentForm,
+    appointmentSlot,
+    appointmentBlockedSlot,
+    appointmentBooking,
+    user,
+  },
+  (r) => ({
+    appointmentForm: {
+      user: r.one.user({
+        from: r.appointmentForm.userId,
+        to: r.user.id,
+      }),
+      slots: r.many.appointmentSlot({
+        from: r.appointmentForm.id,
+        to: r.appointmentSlot.formId,
+      }),
+      blockedSlots: r.many.appointmentBlockedSlot({
+        from: r.appointmentForm.id,
+        to: r.appointmentBlockedSlot.formId,
+      }),
+      bookings: r.many.appointmentBooking({
+        from: r.appointmentForm.id,
+        to: r.appointmentBooking.formId,
+      }),
+    },
+    appointmentSlot: {
+      form: r.one.appointmentForm({
+        from: r.appointmentSlot.formId,
+        to: r.appointmentForm.id,
+      }),
+      bookings: r.many.appointmentBooking({
+        from: r.appointmentSlot.id,
+        to: r.appointmentBooking.slotId,
+      }),
+    },
+    appointmentBlockedSlot: {
+      form: r.one.appointmentForm({
+        from: r.appointmentBlockedSlot.formId,
+        to: r.appointmentForm.id,
+      }),
+    },
+    appointmentBooking: {
+      form: r.one.appointmentForm({
+        from: r.appointmentBooking.formId,
+        to: r.appointmentForm.id,
+      }),
+      slot: r.one.appointmentSlot({
+        from: r.appointmentBooking.slotId,
+        to: r.appointmentSlot.id,
+      }),
+    },
+    user: {
+      appointmentForms: r.many.appointmentForm({
+        from: r.user.id,
+        to: r.appointmentForm.userId,
+      }),
+    },
   }),
 );
