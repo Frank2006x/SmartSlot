@@ -143,8 +143,8 @@ export default function Page() {
               onClick={() => router.push("/create/form")}
               className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-white font-semibold shadow hover:bg-emerald-600"
             >
-              <Plus size={18} />
-              New form
+              <Plus size={19} />
+              Create Appoinment
             </button>
           </div>
         </div>
