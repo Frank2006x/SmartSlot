@@ -556,10 +556,10 @@ export default function CreateSlotPage() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5 hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-200 transition hover:-translate-y-0.5 hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-emerald-300 text-xl"
             >
               <Share2 size={18} />
-              {submitting ? "Saving..." : "Save & share"}
+              {submitting ? "Saving..." : "Save"}
             </button>
 
             <div className="rounded-2xl border border-dashed border-emerald-200 bg-white/60 p-4 text-sm text-gray-600 shadow-sm">
